@@ -250,7 +250,7 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: this.config.get('JWT_REFRESH_SECRET'),
+        secret: this.config.get('JWT_REFRESH_SECRET') || 'default_refresh_secret',
       });
 
       // Check if refresh token exists in database
@@ -266,8 +266,8 @@ export class AuthService {
       const accessToken = this.jwtService.sign(
         { sub: payload.sub, email: payload.email },
         {
-          secret: this.config.get('JWT_ACCESS_SECRET'),
-          expiresIn: this.config.get('JWT_ACCESS_EXPIRATION'),
+          secret: this.config.get('JWT_SECRET'),
+          expiresIn: this.config.get('JWT_ACCESS_EXPIRATION') || '15m',
         },
       );
 
@@ -302,13 +302,13 @@ export class AuthService {
     const payload = { sub: userId, email };
 
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.config.get('JWT_ACCESS_SECRET'),
-      expiresIn: this.config.get('JWT_ACCESS_EXPIRATION'),
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: this.config.get('JWT_ACCESS_EXPIRATION') || '15m',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.config.get('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.get('JWT_REFRESH_EXPIRATION'),
+      expiresIn: this.config.get('JWT_REFRESH_EXPIRATION') || '7d',
     });
 
     // Store refresh token in database
