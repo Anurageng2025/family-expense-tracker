@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: family-expense-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma migrate deploy && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_WbO3EG1JivzN@ep-rapid-haze-anuxe4bx-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: JWT_SECRET
+        value: "super_secret_production_key_change_me"
+      - key: JWT_REFRESH_SECRET
+        value: "super_secret_production_refresh_key_change_me"
+      - key: SMTP_HOST
+        value: "smtp.gmail.com"
+      - key: SMTP_USER
+        value: "fake@gmail.com"
+      - key: SMTP_PASS
+        value: "fake_pass"
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: "https://family-expense-tracker.vercel.app" # You can adjust this later
