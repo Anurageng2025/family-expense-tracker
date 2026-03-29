@@ -57,8 +57,10 @@ export class AuthService {
       },
     });
 
-    // Send OTP via email
-    await this.emailService.sendOTP(email, otp);
+    // Send OTP via email (Non-blocking background task)
+    this.emailService.sendOTP(email, otp).catch(err => {
+      console.error('❌ Background Email Error:', err);
+    });
 
     return { message: 'OTP sent successfully to your email' };
   }
@@ -339,13 +341,13 @@ export class AuthService {
       throw new BadRequestException('No account found with this email');
     }
 
-    // Send family code via email
-    await this.emailService.sendFamilyCode(
+    // Send email (Non-blocking background task)
+    this.emailService.sendFamilyCode(
       email,
       user.name,
       user.family.familyCode,
       user.family.familyName,
-    );
+    ).catch(err => console.error('❌ Background Email Error:', err));
 
     return { message: 'Family code sent to your email successfully' };
   }
