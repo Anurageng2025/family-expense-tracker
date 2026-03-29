@@ -158,20 +158,20 @@ export default function Incomes() {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <h2 className={styles.modalTitle}>{editingIncome ? 'Edit' : 'Add'} Income</h2>
-            
+
             <div className={styles.formGroup}>
               <label className={styles.label}>Amount</label>
-              <input 
-                type="number" 
-                className={styles.input} 
+              <input
+                type="number"
+                className={styles.input}
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label className={styles.label}>Category</label>
-              <select 
+              <select
                 className={styles.select}
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -184,9 +184,9 @@ export default function Incomes() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Date</label>
-              <input 
-                type="date" 
-                className={styles.input} 
+              <input
+                type="date"
+                className={styles.input}
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               />
@@ -194,9 +194,9 @@ export default function Incomes() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Notes (Optional)</label>
-              <input 
-                type="text" 
-                className={styles.input} 
+              <input
+                type="text"
+                className={styles.input}
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />

@@ -105,19 +105,19 @@ export default function MemberReports() {
   return (
     <div className={styles.container}>
       <div className={styles.segmentGroup}>
-        <button 
+        <button
           className={`${styles.segmentBtn} ${viewType === 'summary' ? styles.active : ''}`}
           onClick={() => setViewType('summary')}
         >
           Summary
         </button>
-        <button 
+        <button
           className={`${styles.segmentBtn} ${viewType === 'income' ? styles.active : ''}`}
           onClick={() => setViewType('income')}
         >
           Incomes
         </button>
-        <button 
+        <button
           className={`${styles.segmentBtn} ${viewType === 'expense' ? styles.active : ''}`}
           onClick={() => setViewType('expense')}
         >
@@ -153,7 +153,7 @@ export default function MemberReports() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   className={styles.btnDetails}
                   onClick={() => {
                     setSelectedMember(stat.member.id);
@@ -173,7 +173,7 @@ export default function MemberReports() {
           <div className={styles.card}>
             <div className={styles.cardContent}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#475569' }}>Filter by Member:</label>
-              <select 
+              <select
                 className={styles.select}
                 value={selectedMember}
                 onChange={(e) => setSelectedMember(e.target.value)}
@@ -206,7 +206,7 @@ export default function MemberReports() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div>
                     {getFilteredTransactions().map(t => (
                       <div key={t.id} className={styles.listItem}>
