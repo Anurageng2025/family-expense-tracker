@@ -8,7 +8,8 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:8100',
     'http://localhost:3001',
-    process.env.FRONTEND_URL
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL?.replace(/\/$/, ''), // version without trailing slash
   ].filter(Boolean);
 
   // Enable CORS for frontend
@@ -36,4 +37,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-

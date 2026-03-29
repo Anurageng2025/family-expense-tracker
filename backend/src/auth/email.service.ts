@@ -7,18 +7,34 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private config: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: this.config.get('EMAIL_HOST'),
-      port: this.config.get('EMAIL_PORT'),
-      secure: false,
-      auth: {
-        user: this.config.get('EMAIL_USER'),
-        pass: this.config.get('EMAIL_PASSWORD'),
-      },
-    });
+    const host = this.config.get('EMAIL_HOST');
+    const user = this.config.get('EMAIL_USER');
+    const pass = this.config.get('EMAIL_PASSWORD');
+
+    if (host && user && pass) {
+      this.transporter = nodemailer.createTransport({
+        host,
+        port: parseInt(this.config.get('EMAIL_PORT'), 10) || 587,
+        secure: this.config.get('EMAIL_SECURE') === 'true',
+        auth: {
+          user,
+          pass,
+        },
+      });
+      console.log('📧 Email service initialized');
+    } else {
+      console.warn('⚠️ Email credentials missing in Render dashboard. Emails will only be logged to server console.');
+    }
   }
 
   async sendOTP(email: string, otp: string): Promise<void> {
+    console.log(`\n📧 [SYSTEM LOG] OTP for ${email}: ${otp}\n`);
+    
+    if (!this.transporter) {
+      console.log('ℹ️ Skipping real email send: Email service not configured.');
+      return;
+    }
+
     try {
       await this.transporter.sendMail({
         from: this.config.get('EMAIL_FROM'),
