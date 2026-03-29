@@ -1,0 +1,179 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.segmentGroup {
+  display: inline-flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.segmentBtn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.segmentBtn.active {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+/* Common list items like records */
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.memberStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .memberStatsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.statBox {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.statSuccess { color: #10b981; }
+.statDanger { color: #ef4444; }
+.statPrimary { color: #3b82f6; }
+.statWarning { color: #f59e0b; }
+
+.badge {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.btnDetails {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+.btnDetails:hover {
+  background: #eff6ff;
+}
+
+.select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #1e293b;
+  box-sizing: border-box;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.itemLabel {
+  display: flex;
+  flex-direction: column;
+}
+
+.itemAmount {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.amountIncome { color: #10b981; }
+.amountExpense { color: #ef4444; }
+
+.itemMeta {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 600px) {
+  .segmentGroup {
+    flex-direction: column;
+    gap: 0.5rem;
+    background: transparent;
+  }
+  .segmentBtn {
+    width: 100%;
+    background: #f1f5f9;
+  }
+  .segmentBtn.active {
+    background: white;
+  }
+  .cardContent {
+    padding: 1rem;
+  }
+}

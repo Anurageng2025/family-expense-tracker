@@ -1,0 +1,175 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+}
+
+.memberItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.memberItem:last-child {
+  border-bottom: none;
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.memberName {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.memberMeta {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.badge {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.badgeAdmin {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.btnPrimary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: #2563eb;
+}
+
+.btnOutline {
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.btnOutline:hover {
+  background: #f8fafc;
+}
+
+.btnDangerOutline {
+  border: 1px solid #fecaca;
+  color: #ef4444;
+}
+
+.btnDangerOutline:hover {
+  background: #fef2f2;
+}
+
+/* Modal styles similar to records.module.css */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modalContent {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1e293b;
+}
+
+@media (max-width: 600px) {
+  .memberItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .cardContent {
+    padding: 1rem;
+  }
+  .modalContent {
+    padding: 1.5rem;
+  }
+}
+
