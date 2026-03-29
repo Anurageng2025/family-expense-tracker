@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -134,7 +134,7 @@ export default function Login() {
             </button>
 
             <p className={styles.footerText}>
-              Don&apos;t have an account?{' '}
+              Don't have an account?{' '}
               <span className={styles.link} onClick={() => router.push('/register')}>
                 Register
               </span>
@@ -143,7 +143,7 @@ export default function Login() {
         ) : (
           <form onSubmit={handleForgotFamilyCode}>
             <p style={{ textAlign: 'center', fontSize: '0.875rem', marginBottom: '1rem', color: '#64748b' }}>
-              Enter your email address and we&apos;ll send your family code to your inbox.
+              Enter your email address and we'll send your family code to your inbox.
             </p>
             <div className={styles.formGroup}>
               <label className={styles.label}>Email</label>

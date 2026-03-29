@@ -1,8 +1,8 @@
 ﻿"use client";
 
-import { useEffect, useState } from &apos;react&apos;;
-import { useRouter } from &apos;next/navigation&apos;;
-import { useAuthStore } from &apos;@/store/authStore&apos;;
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Home() {
   const router = useRouter();
@@ -17,16 +17,16 @@ export default function Home() {
   useEffect(() => {
     if (mounted) {
       if (isAuthenticated) {
-        router.push(&apos;/dashboard&apos;);
+        router.push('/dashboard');
       } else {
-        router.push(&apos;/login&apos;);
+        router.push('/login');
       }
     }
   }, [mounted, isAuthenticated, router]);
 
   return (
-    <div style={{ display: &apos;flex&apos;, justifyContent: &apos;center&apos;, alignItems: &apos;center&apos;, height: &apos;100vh&apos;, background: &apos;#f6f8fd&apos; }}>
-      <p style={{ color: &apos;#64748b&apos;, fontFamily: &apos;Inter, sans-serif&apos; }}>Redirecting...</p>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f6f8fd' }}>
+      <p style={{ color: '#64748b', fontFamily: 'Inter, sans-serif' }}>Redirecting...</p>
     </div>
   );
 }
