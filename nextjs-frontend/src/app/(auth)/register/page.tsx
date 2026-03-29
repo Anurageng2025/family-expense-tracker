@@ -205,7 +205,7 @@ export default function Register() {
               <label className={styles.radioLabel}>
                 <input
                   type="radio"
-                  target="familyType"
+                  name="familyType"
                   value="new"
                   checked={familyType === 'new'}
                   onChange={() => setFamilyType('new')}
@@ -215,7 +215,7 @@ export default function Register() {
               <label className={styles.radioLabel}>
                 <input
                   type="radio"
-                  target="familyType"
+                  name="familyType"
                   value="existing"
                   checked={familyType === 'existing'}
                   onChange={() => setFamilyType('existing')}
