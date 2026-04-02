@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { familyApi, reminderApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './family.module.css';
 
 interface FamilyMember {
@@ -110,7 +111,7 @@ export default function Family() {
     return new Date(date).toLocaleDateString();
   };
 
-  if (!family) return <div>Loading...</div>;
+  if (!family) return <Loader fullPage size="large" text="Loading family details..." />;
 
   return (
     <div className={styles.container}>
@@ -185,7 +186,7 @@ export default function Family() {
                 onClick={handleSendToAll}
                 disabled={loading}
               >
-                Send to All Members
+                {loading ? <ButtonLoader text="Sending..." /> : 'Send to All Members'}
               </button>
               <button 
                 className={`${styles.btn} ${styles.btnOutline}`}

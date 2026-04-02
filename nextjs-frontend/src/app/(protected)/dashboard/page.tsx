@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { dashboardApi, incomeApi, expenseApi } from '@/services/api';
+import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './dashboard.module.css';
 
 const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
@@ -182,7 +183,7 @@ export default function Dashboard() {
   };
 
   if (loading && !data) {
-    return <div>Loading dashboard...</div>;
+    return <Loader fullPage size="large" text="Analyzing dashboard data..." />;
   }
 
   return (
@@ -361,7 +362,7 @@ export default function Dashboard() {
                 Cancel
               </button>
               <button className={styles.saveBtn} onClick={handleFabSave} disabled={loading}>
-                {loading ? 'Saving...' : 'Save'}
+                {loading ? <ButtonLoader text="Saving..." /> : 'Save'}
               </button>
             </div>
           </div>

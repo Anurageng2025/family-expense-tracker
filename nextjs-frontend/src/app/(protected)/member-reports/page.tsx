@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { familyApi, incomeApi, expenseApi, reminderApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './memberReports.module.css';
 
 interface Member {
@@ -64,7 +65,7 @@ export default function MemberReports() {
     }
   }, [user]);
 
-  if (loading) return <div>Loading reports...</div>;
+  if (loading) return <Loader fullPage size="large" text="Compiling reports..." />;
 
   if (user?.role !== 'ADMIN') {
     return (
@@ -375,7 +376,7 @@ export default function MemberReports() {
                 disabled={emailingStatus}
                 style={{ padding: '0.5rem 1rem', border: 'none', background: '#3b82f6', color: 'white', borderRadius: '6px', cursor: emailingStatus ? 'not-allowed' : 'pointer', fontWeight: 600 }}
               >
-                {emailingStatus ? 'Sending...' : 'Send Email'}
+                {emailingStatus ? <ButtonLoader text="Sending..." /> : 'Send Email'}
               </button>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { incomeApi } from '@/services/api';
+import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from '../records.module.css';
 
 const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
@@ -127,7 +128,9 @@ export default function Incomes() {
       </div>
 
       <div className={styles.card}>
-        {incomes.length === 0 ? (
+        {loading && incomes.length === 0 ? (
+          <Loader fullPage text="Retrieving incomes..." />
+        ) : incomes.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
             No income records yet. Add your first income!
           </div>
@@ -204,7 +207,7 @@ export default function Incomes() {
 
             <div className={styles.modalActions}>
               <button className={styles.cancelBtn} onClick={() => setShowModal(false)} disabled={loading}>Cancel</button>
-              <button className={styles.saveBtn} onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
+              <button className={styles.saveBtn} onClick={handleSave} disabled={loading}>{loading ? <ButtonLoader text="Saving..." /> : 'Save'}</button>
             </div>
           </div>
         </div>

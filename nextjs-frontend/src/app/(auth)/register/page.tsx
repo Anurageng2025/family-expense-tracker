@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { ButtonLoader } from '@/components/Loader/Loader';
 import styles from '../auth.module.css';
 
 export default function Register() {
@@ -141,7 +142,7 @@ export default function Register() {
               onClick={handleSendOtp}
               disabled={loading}
             >
-              {loading ? 'Sending...' : 'Send OTP'}
+              {loading ? <ButtonLoader text="Sending..." /> : 'Send OTP'}
             </button>
           </div>
         )}
@@ -166,7 +167,7 @@ export default function Register() {
               onClick={handleVerifyOtp}
               disabled={loading}
             >
-              {loading ? 'Verifying...' : 'Verify OTP'}
+              {loading ? <ButtonLoader text="Verifying..." /> : 'Verify OTP'}
             </button>
             <button
               type="button"
@@ -257,7 +258,7 @@ export default function Register() {
               onClick={handleRegister}
               disabled={loading}
             >
-              {loading ? 'Completing...' : 'Complete Registration'}
+              {loading ? <ButtonLoader text="Completing..." /> : 'Complete Registration'}
             </button>
           </div>
         )}

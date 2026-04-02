@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { expenseApi } from '@/services/api';
+import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from '../records.module.css';
 
 const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
@@ -127,7 +128,9 @@ export default function Expenses() {
       </div>
 
       <div className={styles.card}>
-        {expenses.length === 0 ? (
+        {loading && expenses.length === 0 ? (
+          <Loader fullPage text="Retrieving expenses..." />
+        ) : expenses.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
             No expense records yet. Add your first expense!
           </div>
@@ -204,7 +207,7 @@ export default function Expenses() {
 
             <div className={styles.modalActions}>
               <button className={styles.cancelBtn} onClick={() => setShowModal(false)} disabled={loading}>Cancel</button>
-              <button className={styles.saveBtn} onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
+              <button className={styles.saveBtn} onClick={handleSave} disabled={loading}>{loading ? <ButtonLoader text="Saving..." /> : 'Save'}</button>
             </div>
           </div>
         </div>

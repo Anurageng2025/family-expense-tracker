@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { ButtonLoader } from '@/components/Loader/Loader';
 import styles from '../auth.module.css';
 
 export default function Login() {
@@ -118,7 +119,7 @@ export default function Login() {
             </div>
 
             <button type="submit" className={styles.button} disabled={loading}>
-              {loading ? 'Please wait...' : 'Login'}
+              {loading ? <ButtonLoader text="Logging in..." /> : 'Login'}
             </button>
 
             <button
@@ -158,7 +159,7 @@ export default function Login() {
             </div>
 
             <button type="submit" className={styles.button} disabled={loading}>
-              {loading ? 'Please wait...' : 'Send Family Code'}
+              {loading ? <ButtonLoader text="Sending..." /> : 'Send Family Code'}
             </button>
 
             <button
