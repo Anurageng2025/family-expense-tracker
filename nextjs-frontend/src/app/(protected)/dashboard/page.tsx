@@ -87,6 +87,38 @@ export default function Dashboard() {
       }
     : null;
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            let label = context.dataset.label || '';
+            if (label) label += ': ';
+            if (context.parsed.y !== undefined) {
+              label += formatCurrency(context.parsed.y);
+            } else if (context.parsed !== undefined) {
+              label += formatCurrency(context.parsed);
+            }
+            return label;
+          }
+        }
+      }
+    }
+  };
+
+  const barOptions = {
+    ...chartOptions,
+    scales: {
+      y: {
+        ticks: {
+          callback: (value: any) => formatCurrency(value)
+        }
+      }
+    }
+  };
+
   if (loading && !data) {
     return <div>Loading dashboard...</div>;
   }
@@ -136,7 +168,7 @@ export default function Dashboard() {
               <div className={styles.chartHeader}>Overview</div>
               {balanceBarData ? (
                 <div style={{ height: '300px' }}>
-                  <Bar data={balanceBarData} options={{ maintainAspectRatio: false }} />
+                  <Bar data={balanceBarData} options={barOptions} />
                 </div>
               ) : <p>No data</p>}
             </div>
@@ -145,7 +177,7 @@ export default function Dashboard() {
               <div className={styles.chartHeader}>Income by Category</div>
               {incomePieData ? (
                 <div style={{ padding: '0 2rem' }}>
-                  <Pie data={incomePieData} />
+                  <Pie data={incomePieData} options={chartOptions} />
                 </div>
               ) : <p>No income data</p>}
             </div>
@@ -154,7 +186,7 @@ export default function Dashboard() {
               <div className={styles.chartHeader}>Expense by Category</div>
               {expensePieData ? (
                 <div style={{ padding: '0 2rem' }}>
-                  <Pie data={expensePieData} />
+                  <Pie data={expensePieData} options={chartOptions} />
                 </div>
               ) : <p>No expense data</p>}
             </div>

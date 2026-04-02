@@ -110,7 +110,7 @@ export class EmailService {
     familyName: string,
   ): Promise<void> {
     try {
-      const currentDate = new Date().toLocaleDateString('en-US', {
+      const currentDate = new Date().toLocaleDateString('en-IN', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',

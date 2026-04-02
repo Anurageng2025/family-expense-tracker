@@ -6,6 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const allowedOrigins = [
+    'http://localhost:3000', // Added frontend port 3000
     'http://localhost:8100',
     'http://localhost:3001',
     process.env.FRONTEND_URL,
@@ -31,7 +32,7 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001; // Changed default from 3000 to 3001
   await app.listen(port);
   console.log(`🚀 Application is running on: http://localhost:${port}/api`);
 }
