@@ -21,6 +21,20 @@ class SendBulkReminderDto {
   memberIds: string[];
 }
 
+class SendReportDto {
+  @IsString()
+  @IsNotEmpty()
+  targetMemberId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  csvData: string;
+
+  @IsString()
+  @IsNotEmpty()
+  reportName: string;
+}
+
 @Controller('reminders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReminderController {
@@ -94,6 +108,29 @@ export class ReminderController {
     try {
       const result = await this.reminderService.sendTestReminder(user.email);
       return ResponseUtil.success(result.message);
+    } catch (error) {
+      return ResponseUtil.error(error.message, error.stack, error.status);
+    }
+  }
+
+  /**
+   * POST /api/reminders/send-report
+   * Admin only - Send an on-demand transaction report to a specific member with CSV attachment
+   */
+  @Post('send-report')
+  @Roles(UserRole.ADMIN)
+  async sendReport(
+    @CurrentUser() user: any,
+    @Body() dto: SendReportDto,
+  ) {
+    try {
+      const result = await this.reminderService.sendTransactionReport(
+        user.familyId,
+        dto.targetMemberId,
+        dto.csvData,
+        dto.reportName
+      );
+      return ResponseUtil.success(result.message, result);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
     }

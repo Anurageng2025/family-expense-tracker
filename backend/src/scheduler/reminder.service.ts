@@ -59,6 +59,86 @@ export class ReminderService {
   }
 
   /**
+   * Send monthly summary to family Admin on the 1st of every month at 9:00 AM
+   */
+  @Cron('0 9 1 * *', {
+    name: 'monthly-summary',
+    timeZone: 'America/New_York',
+  })
+  async handleMonthlySummary() {
+    this.logger.log('Running monthly summary task');
+    
+    try {
+      const now = new Date();
+      // Get first day and last day of previous month
+      const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      
+      const summaryMonthStr = startOfPrevMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+      // Find all families
+      const families = await this.prisma.family.findMany({
+        include: {
+          users: {
+            include: {
+              incomes: {
+                where: {
+                  date: {
+                    gte: startOfPrevMonth,
+                    lte: endOfPrevMonth,
+                  }
+                }
+              },
+              expenses: {
+                where: {
+                  date: {
+                    gte: startOfPrevMonth,
+                    lte: endOfPrevMonth,
+                  }
+                }
+              }
+            }
+          }
+        },
+      });
+
+      for (const family of families) {
+        if (!family.users || family.users.length === 0) continue;
+        const adminUser = family.users.find(u => u.role === 'ADMIN') || family.users[0];
+
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        for (const user of family.users) {
+          totalIncome += user.incomes.reduce((sum, inc) => sum + inc.amount, 0);
+          totalExpense += user.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+        }
+
+        const balance = totalIncome - totalExpense;
+
+        try {
+          await this.emailService.sendMonthlySummary(
+            adminUser.email,
+            adminUser.name,
+            family.familyName,
+            summaryMonthStr,
+            totalIncome,
+            totalExpense,
+            balance
+          );
+          this.logger.log(`Monthly summary sent to admin ${adminUser.email}`);
+        } catch (error) {
+          this.logger.error(`Failed to send monthly summary to ${adminUser.email}: ${error.message}`);
+        }
+      }
+
+      this.logger.log('Monthly summary task completed');
+    } catch (error) {
+      this.logger.error(`Error in monthly summary task: ${error.message}`);
+    }
+  }
+
+  /**
    * Send reminder to a specific family member (Admin feature)
    */
   async sendReminderToMember(familyId: string, memberId: string) {
@@ -213,6 +293,42 @@ export class ReminderService {
     );
 
     return { message: 'Test reminder sent successfully' };
+  }
+
+  /**
+   * Send on-demand transaction report to a specific member with CSV securely attached
+   */
+  async sendTransactionReport(familyId: string, memberId: string, csvData: string, reportName: string) {
+    try {
+      const member = await this.prisma.user.findFirst({
+        where: {
+          id: memberId,
+          familyId: familyId,
+        },
+        include: { family: true },
+      });
+
+      if (!member) {
+        throw new Error('Member not found in your family');
+      }
+
+      await this.emailService.sendOnDemandReport(
+        member.email,
+        member.name,
+        reportName,
+        csvData,
+      );
+
+      this.logger.log(`On-demand transaction report sent to ${member.email} by admin`);
+
+      return {
+        message: `Report sent successfully to ${member.name}`,
+        sentTo: member.email,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to send on-demand transaction report: ${error.message}`);
+      throw error;
+    }
   }
 }
 

@@ -1,0 +1,99 @@
+﻿
+> family-expense-tracker-backend@1.0.0 start
+> nest start
+
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +18ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +3ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 8668  - [39m02/04/2026, 8:11:39 pm [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+≡ƒôº Email service initialized
+node.exe : [31m[Nest] 
+8668  - [39m02/04/2026, 
+8:11:39 pm [31m  
+ERROR[39m [38;5;3m[Excep
+tionHandler] 
+[39m[31mJwtStrategy 
+requires a secret or 
+key[39m
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (  
+  [31m[Nest] 866...ret    
+ or key[39m:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+TypeError: JwtStrategy 
+requires a secret or key
+    at new JwtStrategy (C:
+\Users\anura\Downloads\exp
+ansis_Track\expansis_Track
+\backend\node_modules\pass
+port-jwt\lib\strategy.js:4
+5:15)
+    at new MixinStrategy (
+C:\Users\anura\Downloads\e
+xpansis_Track\expansis_Tra
+ck\backend\node_modules\@n
+estjs\passport\dist\passpo
+rt\passport.strategy.js:32
+:13)
+    at new JwtStrategy (C:
+\Users\anura\Downloads\exp
+ansis_Track\expansis_Track
+\backend\src\auth\strategi
+es\jwt.strategy.ts:13:5)
+    at 
+Injector.instantiateClass 
+(C:\Users\anura\Downloads\
+expansis_Track\expansis_Tr
+ack\backend\node_modules\@
+nestjs\core\injector\injec
+tor.js:373:19)
+    at callback (C:\Users\
+anura\Downloads\expansis_T
+rack\expansis_Track\backen
+d\node_modules\@nestjs\cor
+e\injector\injector.js:65:
+45)
+    at async Injector.reso
+lveConstructorParams (C:\U
+sers\anura\Downloads\expan
+sis_Track\expansis_Track\b
+ackend\node_modules\@nestj
+s\core\injector\injector.j
+s:145:24)
+    at async 
+Injector.loadInstance (C:\
+Users\anura\Downloads\expa
+nsis_Track\expansis_Track\
+backend\node_modules\@nest
+js\core\injector\injector.
+js:70:13)
+    at async 
+Injector.loadProvider (C:\
+Users\anura\Downloads\expa
+nsis_Track\expansis_Track\
+backend\node_modules\@nest
+js\core\injector\injector.
+js:98:9)
+    at async C:\Users\anur
+a\Downloads\expansis_Track
+\expansis_Track\backend\no
+de_modules\@nestjs\core\in
+jector\instance-loader.js:
+56:13
+    at async Promise.all 
+(index 4)

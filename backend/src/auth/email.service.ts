@@ -29,7 +29,7 @@ export class EmailService {
 
   async sendOTP(email: string, otp: string): Promise<void> {
     console.log(`\n📧 [SYSTEM LOG] OTP for ${email}: ${otp}\n`);
-    
+
     if (!this.transporter) {
       console.log('ℹ️ Skipping real email send: Email service not configured.');
       return;
@@ -156,7 +156,7 @@ export class EmailService {
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="http://localhost:8100/expenses" style="display: inline-block; padding: 15px 40px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold;">
+              <a href="https://nextjs-frontend-five-weld.vercel.app/expenses" style="display: inline-block; padding: 15px 40px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold;">
                 Add Today's Expenses
               </a>
             </div>
@@ -186,5 +186,141 @@ export class EmailService {
       }
     }
   }
-}
 
+  async sendMonthlySummary(
+    email: string,
+    userName: string,
+    familyName: string,
+    summaryMonth: string,
+    totalIncome: number,
+    totalExpense: number,
+    balance: number,
+  ): Promise<void> {
+    try {
+      const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+        }).format(amount);
+      };
+
+      const balanceColor = balance >= 0 ? '#10b981' : '#ef4444';
+
+      await this.transporter.sendMail({
+        from: this.config.get('EMAIL_FROM'),
+        to: email,
+        subject: `📊 Monthly Financial Summary: ${summaryMonth} - Family Expense Tracker`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; border: 2px solid #3b82f6; border-radius: 10px;">
+            <div style="text-align: center; padding: 20px; background-color: #3b82f6; color: white; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px;">
+              <h1 style="margin: 0; font-size: 28px;">📊 Monthly Summary</h1>
+              <p style="margin: 5px 0 0 0; font-size: 16px; opacity: 0.9;">${summaryMonth}</p>
+            </div>
+
+            <p style="font-size: 18px;">Hi <strong>${userName}</strong>,</p>
+            
+            <p style="font-size: 16px; line-height: 1.6;">
+              Here is your family's official monthly financial summary for <strong>${summaryMonth}</strong>.
+            </p>
+
+            <div style="background-color: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 10px;">
+                <span style="font-size: 16px; color: #64748b;">Total Income</span>
+                <span style="font-size: 18px; font-weight: bold; color: #10b981;">${formatCurrency(totalIncome)}</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 10px;">
+                <span style="font-size: 16px; color: #64748b;">Total Expenses</span>
+                <span style="font-size: 18px; font-weight: bold; color: #ef4444;">${formatCurrency(totalExpense)}</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding-top: 5px;">
+                <span style="font-size: 18px; font-weight: bold; color: #0f172a;">Net Balance</span>
+                <span style="font-size: 22px; font-weight: bold; color: ${balanceColor};">${formatCurrency(balance)}</span>
+              </div>
+
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://nextjs-frontend-five-weld.vercel.app/dashboard" style="display: inline-block; padding: 15px 40px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold;">
+                View Dashboard
+              </a>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="font-size: 12px; color: #999; text-align: center;">
+              You're receiving this official report because you are the admin of <strong>${familyName}</strong>.
+              <br>
+              Family Expense Tracker
+            </p>
+          </div>
+        `,
+      });
+      console.log(`✅ Monthly summary email sent to ${email}`);
+    } catch (error) {
+      console.error('❌ Error sending monthly summary email:', error);
+      if (this.config.get('NODE_ENV') === 'development') {
+        console.log(`📧 Development Mode - Monthly Summary Reminder for ${email} (${userName} - ${familyName})`);
+      }
+    }
+  }
+
+  async sendOnDemandReport(
+    email: string,
+    userName: string,
+    reportName: string,
+    csvContent: string,
+  ): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: this.config.get('EMAIL_FROM'),
+        to: email,
+        subject: `📩 Your Financial Report: ${reportName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; border: 2px solid #10b981; border-radius: 10px;">
+            <div style="text-align: center; padding: 20px; background-color: #10b981; color: white; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px;">
+              <h1 style="margin: 0; font-size: 24px;">📊 Family Expense Tracker</h1>
+              <p style="margin: 5px 0 0 0; font-size: 16px; opacity: 0.9;">On-Demand Transaction Report</p>
+            </div>
+
+            <p style="font-size: 18px;">Hi <strong>${userName}</strong>,</p>
+            
+            <p style="font-size: 16px; line-height: 1.6;">
+              An admin has requested to send you the <strong>${reportName}</strong>. 
+            </p>
+            <p style="font-size: 16px; line-height: 1.6;">
+              Please find your detailed transaction history securely attached to this email as a CSV file. You can open this natively in Microsoft Excel, Google Sheets, or Apple Numbers.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://nextjs-frontend-five-weld.vercel.app/dashboard" style="display: inline-block; padding: 15px 40px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold;">
+                View Dashboard
+              </a>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">
+              Family Expense Tracker<br>
+              This is an automatically generated email.
+            </p>
+          </div>
+        `,
+        attachments: [
+          {
+            filename: `transactions_report_${new Date().toISOString().split('T')[0]}.csv`,
+            content: csvContent,
+            contentType: 'text/csv'
+          }
+        ]
+      });
+      console.log(`✅ On-Demand Report email sent to ${email}`);
+    } catch (error) {
+      console.error('❌ Error sending on-demand report email:', error);
+      if (this.config.get('NODE_ENV') === 'development') {
+        console.log(`📧 Development Mode - On-Demand Report for ${email} (${userName})`);
+      }
+    }
+  }
+}

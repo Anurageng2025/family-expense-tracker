@@ -135,5 +135,6 @@ export const reminderApi = {
   sendToAll: () => api.post<ApiResponse>('/reminders/send-to-all'),
   sendBulk: (memberIds: string[]) => api.post<ApiResponse>('/reminders/send-bulk', { memberIds }),
   sendTest: () => api.post<ApiResponse>('/reminders/test'),
+  sendReport: (targetMemberId: string, csvData: string, reportName: string) => 
+    api.post<ApiResponse>('/reminders/send-report', { targetMemberId, csvData, reportName }),
 };
-

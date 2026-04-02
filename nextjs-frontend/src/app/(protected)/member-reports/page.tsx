@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { familyApi, incomeApi, expenseApi } from '@/services/api';
+import { familyApi, incomeApi, expenseApi, reminderApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 import styles from './memberReports.module.css';
 
@@ -30,6 +30,10 @@ export default function MemberReports() {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTargetMember, setEmailTargetMember] = useState<string>('');
+  const [emailingStatus, setEmailingStatus] = useState(false);
+
   const fetchData = async () => {
     try {
       const [membersRes, incomesRes, expensesRes] = await Promise.all([
@@ -37,7 +41,12 @@ export default function MemberReports() {
         incomeApi.getFamilyIncomes(),
         expenseApi.getFamilyExpenses(),
       ]);
-      if (membersRes.data.success) setMembers(membersRes.data.data);
+      if (membersRes.data.success) {
+        setMembers(membersRes.data.data);
+        if (membersRes.data.data.length > 0) {
+          setEmailTargetMember(membersRes.data.data[0].id);
+        }
+      }
       if (incomesRes.data.success) setAllIncomes(incomesRes.data.data);
       if (expensesRes.data.success) setAllExpenses(expensesRes.data.data);
     } catch {
@@ -85,6 +94,90 @@ export default function MemberReports() {
     };
   });
 
+  const handleExportCsv = () => {
+    let transactionsToExport: Transaction[] = [];
+    if (viewType === 'summary') {
+      if (selectedMember === 'all') {
+        transactionsToExport = [...allIncomes, ...allExpenses];
+      } else {
+        transactionsToExport = [...allIncomes, ...allExpenses].filter(t => t.user?.id === selectedMember);
+      }
+    } else {
+      transactionsToExport = getFilteredTransactions();
+    }
+
+    transactionsToExport.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const headers = ['Date', 'Type', 'Category', 'Amount (INR)', 'Member', 'Notes'];
+    
+    const rows = transactionsToExport.map(t => {
+      const type = allIncomes.some(i => i.id === t.id) ? 'Income' : 'Expense';
+      return [
+        new Date(t.date).toLocaleDateString('en-IN'),
+        type,
+        `"${t.category}"`,
+        t.amount.toString(),
+        `"${t.user?.name || 'Unknown'}"`,
+        `"${t.notes || ''}"`
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTargetMember) return;
+    try {
+      setEmailingStatus(true);
+      
+      let transactionsToExport: Transaction[] = [];
+      if (viewType === 'summary') {
+        if (selectedMember === 'all') {
+          transactionsToExport = [...allIncomes, ...allExpenses];
+        } else {
+          transactionsToExport = [...allIncomes, ...allExpenses].filter(t => t.user?.id === selectedMember);
+        }
+      } else {
+        transactionsToExport = getFilteredTransactions();
+      }
+
+      transactionsToExport.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const headers = ['Date', 'Type', 'Category', 'Amount (INR)', 'Member', 'Notes'];
+      const rows = transactionsToExport.map(t => {
+        const type = allIncomes.some(i => i.id === t.id) ? 'Income' : 'Expense';
+        return [
+          new Date(t.date).toLocaleDateString('en-IN'), type, `"${t.category}"`,
+          t.amount.toString(), `"${t.user?.name || 'Unknown'}"`, `"${t.notes || ''}"`
+        ].join(',');
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      
+      let reportName = 'Full Family Export';
+      if (selectedMember !== 'all') {
+        const m = members.find(m => m.id === selectedMember);
+        reportName = m ? `${m.name}'s Transactions` : reportName;
+      }
+
+      await reminderApi.sendReport(emailTargetMember, csvContent, reportName);
+      alert('Report Sent Successfully!');
+      setShowEmailModal(false);
+    } catch (e) {
+      alert('Failed to send report');
+    } finally {
+      setEmailingStatus(false);
+    }
+  };
+
   const getFilteredTransactions = () => {
     const transactions = viewType === 'income' ? allIncomes : allExpenses;
     if (selectedMember === 'all') return transactions;
@@ -122,6 +215,29 @@ export default function MemberReports() {
           onClick={() => setViewType('expense')}
         >
           Expenses
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem', gap: '1rem' }}>
+        <button 
+          onClick={() => setShowEmailModal(true)}
+          style={{
+            background: '#3b82f6', color: 'white', padding: '0.5rem 1rem', 
+            border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)'
+          }}
+        >
+          ✉️ Email Report
+        </button>
+        <button 
+          onClick={handleExportCsv}
+          style={{
+            background: '#10b981', color: 'white', padding: '0.5rem 1rem', 
+            border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+          }}
+        >
+          ⬇️ Export to Excel (CSV)
         </button>
       </div>
 
@@ -229,6 +345,41 @@ export default function MemberReports() {
             </div>
           </div>
         </>
+      )}
+
+      {showEmailModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '1rem', color: '#0f172a' }}>Send Report</h2>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#475569' }}>Select Member to Email</label>
+              <select
+                value={emailTargetMember}
+                onChange={(e) => setEmailTargetMember(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px' }}
+              >
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>{m.name} ({m.email})</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button 
+                onClick={() => setShowEmailModal(false)}
+                style={{ padding: '0.5rem 1rem', border: 'none', background: '#f1f5f9', color: '#475569', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSendEmail}
+                disabled={emailingStatus}
+                style={{ padding: '0.5rem 1rem', border: 'none', background: '#3b82f6', color: 'white', borderRadius: '6px', cursor: emailingStatus ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+              >
+                {emailingStatus ? 'Sending...' : 'Send Email'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

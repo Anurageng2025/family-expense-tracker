@@ -3,8 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { dashboardApi } from '@/services/api';
+import { dashboardApi, incomeApi, expenseApi } from '@/services/api';
 import styles from './dashboard.module.css';
+
+const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
+const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
+
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -14,6 +18,15 @@ export default function Dashboard() {
   const [personalData, setPersonalData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const [showFabModal, setShowFabModal] = useState(false);
+  const [fabType, setFabType] = useState<'expense' | 'income'>('expense');
+  const [fabFormData, setFabFormData] = useState({
+    amount: '',
+    category: 'Food',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
 
   const fetchData = async () => {
     try {
@@ -46,6 +59,55 @@ export default function Dashboard() {
       style: 'currency',
       currency: 'INR',
     }).format(amount);
+  };
+
+  const activeCategories = fabType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+  const handleFabSave = async () => {
+    if (!fabFormData.amount || parseFloat(fabFormData.amount) <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        amount: parseFloat(fabFormData.amount),
+        category: fabFormData.category,
+        date: new Date(fabFormData.date).toISOString(),
+        notes: fabFormData.notes || undefined,
+      };
+
+      if (fabType === 'income') {
+        await incomeApi.create(payload);
+      } else {
+        await expenseApi.create(payload);
+      }
+      
+      setShowFabModal(false);
+      
+      // Reset form default
+      setFabFormData({
+        amount: '',
+        category: fabType === 'income' ? 'Salary' : 'Food',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+      });
+
+      // Refresh dashboard data internally to reflect the new transaction instantly
+      fetchData();
+    } catch {
+      alert(`Failed to save ${fabType}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFabTypeSwitch = (type: 'expense' | 'income') => {
+    setFabType(type);
+    setFabFormData(prev => ({
+      ...prev,
+      category: type === 'income' ? 'Salary' : 'Food'
+    }));
   };
 
   const data = view === 'family' ? familyData : personalData;
@@ -221,6 +283,89 @@ export default function Dashboard() {
             </div>
           )}
         </>
+      )}
+
+      {/* Floating Action Button */}
+      <button className={styles.fab} onClick={() => setShowFabModal(true)} title="Add Transaction">
+        <span>+</span>
+      </button>
+
+      {/* FAB Modal */}
+      {showFabModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Add Transaction</h2>
+
+            <div className={styles.typeToggle}>
+              <button 
+                className={`${styles.typeBtn} ${fabType === 'expense' ? styles.activeExpense : ''}`}
+                onClick={() => handleFabTypeSwitch('expense')}
+              >
+                Expense
+              </button>
+              <button 
+                className={`${styles.typeBtn} ${fabType === 'income' ? styles.activeIncome : ''}`}
+                onClick={() => handleFabTypeSwitch('income')}
+              >
+                Income
+              </button>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Amount</label>
+              <input
+                type="number"
+                className={styles.input}
+                value={fabFormData.amount}
+                onChange={(e) => setFabFormData({ ...fabFormData, amount: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Category</label>
+              <select
+                className={styles.select}
+                value={fabFormData.category}
+                onChange={(e) => setFabFormData({ ...fabFormData, category: e.target.value })}
+              >
+                {activeCategories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Date</label>
+              <input
+                type="date"
+                className={styles.input}
+                value={fabFormData.date}
+                onChange={(e) => setFabFormData({ ...fabFormData, date: e.target.value })}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Notes (Optional)</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={fabFormData.notes}
+                onChange={(e) => setFabFormData({ ...fabFormData, notes: e.target.value })}
+                placeholder="What was this for?"
+              />
+            </div>
+
+            <div className={styles.modalActions}>
+              <button className={styles.cancelBtn} onClick={() => setShowFabModal(false)} disabled={loading}>
+                Cancel
+              </button>
+              <button className={styles.saveBtn} onClick={handleFabSave} disabled={loading}>
+                {loading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
