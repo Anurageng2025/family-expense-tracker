@@ -1,0 +1,8 @@
+{
+	"appId": "com.expansisTrack.app",
+	"appName": "ExpansisTrack",
+	"webDir": "out",
+	"server": {
+		"androidScheme": "https"
+	}
+}
