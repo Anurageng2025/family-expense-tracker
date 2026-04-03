@@ -6,11 +6,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const allowedOrigins = [
-    'http://localhost:3000', // Added frontend port 3000
+    'http://localhost',
+    'https://localhost',
+    'capacitor://localhost',
+    'http://localhost:3000',
     'http://localhost:8100',
     'http://localhost:3001',
     process.env.FRONTEND_URL,
-    process.env.FRONTEND_URL?.replace(/\/$/, ''), // version without trailing slash
+    process.env.FRONTEND_URL?.replace(/\/$/, ''),
   ].filter(Boolean);
 
   // Enable CORS for frontend
