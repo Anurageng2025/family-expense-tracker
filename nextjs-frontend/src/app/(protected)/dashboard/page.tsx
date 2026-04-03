@@ -59,6 +59,7 @@ export default function Dashboard() {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -319,7 +320,7 @@ export default function Dashboard() {
                 className={styles.input}
                 value={fabFormData.amount}
                 onChange={(e) => setFabFormData({ ...fabFormData, amount: e.target.value })}
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
 
