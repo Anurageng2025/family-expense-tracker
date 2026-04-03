@@ -20,6 +20,12 @@ export default function Login() {
 
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  const handleFamilyCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (val.length <= 6) {
+      setFamilyCode(val);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,9 +95,10 @@ export default function Login() {
               <input
                 className={styles.input}
                 type="text"
-                placeholder="Enter family code"
+                inputMode="numeric"
+                placeholder="6-digit family code"
                 value={familyCode}
-                onChange={(e) => setFamilyCode(e.target.value)}
+                onChange={handleFamilyCodeChange}
                 required
               />
             </div>

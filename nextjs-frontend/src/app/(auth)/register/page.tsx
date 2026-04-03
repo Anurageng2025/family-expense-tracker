@@ -10,7 +10,40 @@ import styles from '../auth.module.css';
 export default function Register() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const otpRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (isNaN(Number(value))) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+
+    // Focus next
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    const data = e.clipboardData.getData('text').slice(0, 6);
+    if (!/^\d+$/.test(data)) return;
+
+    const newOtp = [...otp];
+    for (let i = 0; i < data.length; i++) {
+      newOtp[i] = data[i];
+    }
+    setOtp(newOtp);
+    otpRefs.current[data.length < 6 ? data.length : 5]?.focus();
+  };
+
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [familyType, setFamilyType] = useState<'new' | 'existing'>('new');
@@ -48,15 +81,16 @@ export default function Register() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      setErrorMsg('Please enter the OTP');
+    const fullOtp = otp.join('');
+    if (fullOtp.length !== 6) {
+      setErrorMsg('Please enter the 6-digit OTP');
       return;
     }
 
     try {
       setLoading(true);
       setErrorMsg('');
-      const response = await authApi.verifyOtp(email, otp);
+      const response = await authApi.verifyOtp(email, fullOtp);
 
       if (response.data.success) {
         setSuccessMsg('OTP verified successfully!');
@@ -116,6 +150,13 @@ export default function Register() {
     }
   };
 
+  const handleFamilyCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (val.length <= 6) {
+      setFamilyCode(val);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -149,18 +190,26 @@ export default function Register() {
 
         {step === 2 && (
           <div className={styles.formGroup}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '1rem', color: '#64748b' }}>
+            <p style={{ fontSize: '0.875rem', marginBottom: '1rem', color: '#64748b', textAlign: 'center' }}>
               We sent a 6-digit OTP to {email}
             </p>
-            <label className={styles.label}>OTP</label>
-            <input
-              className={styles.input}
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
+            <label className={styles.label}>Enter OTP</label>
+            <div className={styles.otpContainer}>
+              {otp.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { otpRefs.current[i] = el; }}
+                  className={styles.otpInput}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  onPaste={handleOtpPaste}
+                />
+              ))}
+            </div>
             <button
               type="button"
               className={styles.button}
@@ -243,9 +292,10 @@ export default function Register() {
                 <input
                   className={styles.input}
                   type="text"
-                  placeholder="Enter family code"
+                  inputMode="numeric"
+                  placeholder="6-digit family code"
                   value={familyCode}
-                  onChange={(e) => setFamilyCode(e.target.value)}
+                  onChange={handleFamilyCodeChange}
                   required
                 />
               </div>
