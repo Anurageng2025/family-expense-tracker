@@ -16,6 +16,40 @@
   color: #1e293b;
 }
 
+.summaryRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summaryCard {
+  flex: 1;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.summaryValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.summaryIncome { border-left: 4px solid #10b981; }
+.summaryExpense { border-left: 4px solid #ef4444; }
+
+
 .addBtn {
   background: #3b82f6;
   color: white;
@@ -27,6 +61,50 @@
   transition: background 0.2s;
 }
 .addBtn:hover { background: #2563eb; }
+
+/* FAB Styles */
+.fabContainer {
+  position: fixed;
+  bottom: 85px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  pointer-events: none;
+  z-index: 900;
+}
+
+.fab {
+  pointer-events: auto;
+  width: 140px;
+  height: 50px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 8px;
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fabIn {
+  background: #10b981;
+}
+
+.fabOut {
+  background: #ef4444;
+}
+
 
 .card {
   background: white;
@@ -112,7 +190,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
   padding: 1rem;
 }
 
