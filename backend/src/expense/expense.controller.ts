@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
@@ -38,9 +39,9 @@ export class ExpenseController {
    * Get all expenses for the logged-in user
    */
   @Get('my')
-  async getMyExpenses(@CurrentUser() user) {
+  async getMyExpenses(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const expenses = await this.expenseService.getUserExpenses(user.userId);
+      const expenses = await this.expenseService.getUserExpenses(user.userId, bookId);
       return ResponseUtil.success('User expenses retrieved', expenses);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
@@ -52,9 +53,9 @@ export class ExpenseController {
    * Get all expenses for the family
    */
   @Get('family')
-  async getFamilyExpenses(@CurrentUser() user) {
+  async getFamilyExpenses(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const expenses = await this.expenseService.getFamilyExpenses(user.familyId);
+      const expenses = await this.expenseService.getFamilyExpenses(user.familyId, bookId);
       return ResponseUtil.success('Family expenses retrieved', expenses);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);

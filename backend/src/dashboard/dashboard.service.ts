@@ -9,7 +9,11 @@ export class DashboardService {
    * Get dashboard summary for family
    * Shows total income, total expenses, balance, and breakdown by members
    */
-  async getFamilyDashboard(familyId: string) {
+  /**
+   * Get dashboard summary for family
+   * Shows total income, total expenses, balance, and breakdown by members
+   */
+  async getFamilyDashboard(familyId: string, bookId?: string) {
     // Get all family members
     const members = await this.prisma.user.findMany({
       where: { familyId },
@@ -26,6 +30,7 @@ export class DashboardService {
         user: {
           familyId,
         },
+        ...(bookId && { bookId }),
       },
       include: {
         user: {
@@ -43,6 +48,7 @@ export class DashboardService {
         user: {
           familyId,
         },
+        ...(bookId && { bookId }),
       },
       include: {
         user: {
@@ -107,15 +113,21 @@ export class DashboardService {
   /**
    * Get dashboard summary for a user
    */
-  async getUserDashboard(userId: string) {
+  async getUserDashboard(userId: string, bookId?: string) {
     // Get user incomes
     const incomes = await this.prisma.income.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        ...(bookId && { bookId }),
+      },
     });
 
     // Get user expenses
     const expenses = await this.prisma.expense.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        ...(bookId && { bookId }),
+      },
     });
 
     // Calculate totals
@@ -155,7 +167,7 @@ export class DashboardService {
   /**
    * Get monthly trends for family
    */
-  async getFamilyMonthlyTrends(familyId: string, months: number = 6) {
+  async getFamilyMonthlyTrends(familyId: string, months: number = 6, bookId?: string) {
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - months);
 
@@ -167,6 +179,7 @@ export class DashboardService {
         date: {
           gte: startDate,
         },
+        ...(bookId && { bookId }),
       },
     });
 
@@ -178,6 +191,7 @@ export class DashboardService {
         date: {
           gte: startDate,
         },
+        ...(bookId && { bookId }),
       },
     });
 
@@ -216,7 +230,7 @@ export class DashboardService {
   /**
    * Get monthly trends for user
    */
-  async getUserMonthlyTrends(userId: string, months: number = 6) {
+  async getUserMonthlyTrends(userId: string, months: number = 6, bookId?: string) {
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - months);
 
@@ -226,6 +240,7 @@ export class DashboardService {
         date: {
           gte: startDate,
         },
+        ...(bookId && { bookId }),
       },
     });
 
@@ -235,6 +250,7 @@ export class DashboardService {
         date: {
           gte: startDate,
         },
+        ...(bookId && { bookId }),
       },
     });
 

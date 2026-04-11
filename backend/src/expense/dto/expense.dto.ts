@@ -14,6 +14,10 @@ export class CreateExpenseDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  bookId?: string;
 }
 
 export class UpdateExpenseDto {
@@ -33,5 +37,8 @@ export class UpdateExpenseDto {
   @IsOptional()
   @IsString()
   notes?: string;
-}
 
+  @IsOptional()
+  @IsString()
+  bookId?: string;
+}

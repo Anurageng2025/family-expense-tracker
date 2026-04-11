@@ -1,0 +1,159 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  border: none;
+  cursor: pointer;
+  gap: 0.5rem;
+  font-family: var(--font-inter);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* Variants */
+.primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.secondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--secondary);
+}
+
+.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.ghost {
+  background: transparent;
+  color: var(--foreground-muted);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--foreground);
+}
+
+/* Sizes */
+.sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
+.md { padding: 0.75rem 1.5rem; font-size: 0.875rem; }
+.lg { padding: 1rem 2rem; font-size: 1rem; }
+
+/* Card */
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.cardHover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Input Styles */
+.inputGroup {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  margin-bottom: 0.625rem;
+  font-family: var(--font-outfit);
+  letter-spacing: 0.01em;
+}
+
+.input {
+  width: 100%;
+  padding: 0.875rem 1.125rem;
+  background: var(--background);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--foreground-muted);
+  opacity: 0.5;
+}
+
+.input:focus, .select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  background: var(--surface);
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  background-size: 1.25rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.inputError, .selectError {
+  border-color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.02) !important;
+}
+
+.inputError:focus, .selectError:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.errorMessage {
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

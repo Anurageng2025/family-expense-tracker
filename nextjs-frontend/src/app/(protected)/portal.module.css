@@ -1,0 +1,97 @@
+.container {
+  min-height: calc(100vh - 130px);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, var(--primary), var(--info));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--foreground-muted);
+  font-size: 1.125rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.bookCard {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2.5rem 1.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  transition: all var(--transition-normal);
+}
+
+.bookCard:hover .iconWrapper {
+  background: var(--primary);
+  color: white;
+  transform: rotate(5deg) scale(1.1);
+}
+
+.bookName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.bookMeta {
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+}
+
+.addBookCard {
+  border: 2px dashed var(--border);
+  background: transparent;
+  box-shadow: none;
+  justify-content: center;
+  color: var(--foreground-muted);
+}
+
+.addBookCard:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.75rem;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

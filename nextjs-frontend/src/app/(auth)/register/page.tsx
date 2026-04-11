@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
-import { ButtonLoader } from '@/components/Loader/Loader';
+import { Card, Input, Button } from '@/components/UI';
+import { UserPlus, Wallet, Mail, ShieldCheck, User as UserIcon, Lock, Users, Building, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../auth.module.css';
 
 export default function Register() {
@@ -15,15 +17,10 @@ export default function Register() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
-
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
-
-    // Focus next
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -35,11 +32,8 @@ export default function Register() {
   const handleOtpPaste = (e: React.ClipboardEvent) => {
     const data = e.clipboardData.getData('text').slice(0, 6);
     if (!/^\d+$/.test(data)) return;
-
     const newOtp = [...otp];
-    for (let i = 0; i < data.length; i++) {
-      newOtp[i] = data[i];
-    }
+    for (let i = 0; i < data.length; i++) newOtp[i] = data[i];
     setOtp(newOtp);
     otpRefs.current[data.length < 6 ? data.length : 5]?.focus();
   };
@@ -134,14 +128,12 @@ export default function Register() {
         setAuth(user, accessToken, refreshToken);
 
         if (newFamilyCode) {
-          setSuccessMsg(`Registration successful! Your family code is: ${newFamilyCode}`);
+          setSuccessMsg(`Account created! Your Family Code is ${newFamilyCode}`);
         } else {
           setSuccessMsg('Registration successful!');
         }
 
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
+        setTimeout(() => router.push('/'), 2000);
       }
     } catch (error: any) {
       setErrorMsg(error.response?.data?.message || 'Registration failed');
@@ -152,174 +144,204 @@ export default function Register() {
 
   const handleFamilyCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
-    if (val.length <= 6) {
-      setFamilyCode(val);
-    }
+    if (val.length <= 6) setFamilyCode(val);
   };
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Register</h1>
-        <p className={styles.subtitle}>Step {step} of 3</p>
-
-        {errorMsg && <div className={styles.error}>{errorMsg}</div>}
-        {successMsg && <div className={styles.success}>{successMsg}</div>}
-
-        {step === 1 && (
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Email</label>
-            <input
-              className={styles.input}
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              className={styles.button}
-              onClick={handleSendOtp}
-              disabled={loading}
-            >
-              {loading ? <ButtonLoader text="Sending..." /> : 'Send OTP'}
-            </button>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={styles.wrapper}
+      >
+        <div className={styles.logoSection}>
+          <div className={styles.iconCircle}>
+            <Wallet size={32} />
           </div>
-        )}
+          <h1 className={styles.brandTitle}>Expansis</h1>
+        </div>
 
-        {step === 2 && (
-          <div className={styles.formGroup}>
-            <p style={{ fontSize: '0.875rem', marginBottom: '1rem', color: '#64748b', textAlign: 'center' }}>
-              We sent a 6-digit OTP to {email}
-            </p>
-            <label className={styles.label}>Enter OTP</label>
-            <div className={styles.otpContainer}>
-              {otp.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { otpRefs.current[i] = el; }}
-                  className={styles.otpInput}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  onPaste={handleOtpPaste}
-                />
-              ))}
+        <Card className={styles.authCard}>
+          <div className={styles.cardHeader}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 className={styles.cardTitle}>Join Expansis</h2>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', background: 'var(--ring)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                STEP {step}/3
+              </span>
             </div>
-            <button
-              type="button"
-              className={styles.button}
-              onClick={handleVerifyOtp}
-              disabled={loading}
-            >
-              {loading ? <ButtonLoader text="Verifying..." /> : 'Verify OTP'}
-            </button>
-            <button
-              type="button"
-              className={styles.buttonClear}
-              onClick={handleSendOtp}
-              disabled={loading}
-            >
-              Resend OTP
-            </button>
+            <p className={styles.cardSubtitle}>Start managing family finances today</p>
           </div>
-        )}
 
-        {step === 3 && (
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Full Name</label>
-            <input
-              className={styles.input}
-              type="text"
-              placeholder="Enter your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            
-            <label className={styles.label} style={{ marginTop: '1rem' }}>Password</label>
-            <input
-              className={styles.input}
-              type="password"
-              placeholder="Enter password (min 6 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
+          {successMsg && <div className={styles.alertSuccess}>{successMsg}</div>}
 
-            <div className={styles.radioGroup} style={{ marginTop: '1.25rem' }}>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="familyType"
-                  value="new"
-                  checked={familyType === 'new'}
-                  onChange={() => setFamilyType('new')}
-                />
-                Create New Family
-              </label>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="familyType"
-                  value="existing"
-                  checked={familyType === 'existing'}
-                  onChange={() => setFamilyType('existing')}
-                />
-                Join Existing Family
-              </label>
-            </div>
-
-            {familyType === 'new' ? (
-              <div style={{ marginTop: '1rem' }}>
-                <label className={styles.label}>Family Name</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  placeholder="Enter family name"
-                  value={familyName}
-                  onChange={(e) => setFamilyName(e.target.value)}
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={styles.form}
+              >
+                <Input
+                  label="Email Address"
+                  type="email"
+                  placeholder="name@family.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-              </div>
-            ) : (
-              <div style={{ marginTop: '1rem' }}>
-                <label className={styles.label}>Family Code</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="6-digit family code"
-                  value={familyCode}
-                  onChange={handleFamilyCodeChange}
-                  required
-                />
-              </div>
+                <Button 
+                  onClick={handleSendOtp} 
+                  isLoading={loading}
+                  disabled={loading}
+                  className={styles.submitBtn}
+                >
+                  {!loading && <Mail size={18} />}
+                  Send Verification OTP
+                </Button>
+              </motion.div>
             )}
 
-            <button
-              type="button"
-              className={styles.button}
-              style={{ marginTop: '1.5rem' }}
-              onClick={handleRegister}
-              disabled={loading}
-            >
-              {loading ? <ButtonLoader text="Completing..." /> : 'Complete Registration'}
-            </button>
-          </div>
-        )}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className={styles.form}
+              >
+                <p style={{ fontSize: '0.875rem', color: 'var(--foreground-muted)', textAlign: 'center', marginBottom: '1.5rem' }}>
+                  A verification code was sent to <br/><strong>{email}</strong>
+                </p>
+                <div className={styles.otpContainer}>
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      className={styles.otpInput}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={handleOtpPaste}
+                    />
+                  ))}
+                </div>
+                <Button 
+                  onClick={handleVerifyOtp} 
+                  isLoading={loading}
+                  disabled={loading}
+                  className={styles.submitBtn}
+                >
+                  Verify Code
+                </Button>
+                <button
+                  type="button"
+                  className={styles.ghostLink}
+                  onClick={handleSendOtp}
+                  disabled={loading}
+                >
+                  Resend OTP Code
+                </button>
+              </motion.div>
+            )}
 
-        <p className={styles.footerText}>
-          Already have an account?{' '}
-          <span className={styles.link} onClick={() => router.push('/login')}>
-            Login
-          </span>
-        </p>
-      </div>
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={styles.form}
+              >
+                <Input
+                  label="Your Full Name"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+                <Input
+                  label="Secure Password"
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                
+                <div className={styles.radioGroup}>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="familyType"
+                      value="new"
+                      checked={familyType === 'new'}
+                      onChange={() => setFamilyType('new')}
+                    />
+                    <Building size={18} />
+                    Create New Family
+                  </label>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="familyType"
+                      value="existing"
+                      checked={familyType === 'existing'}
+                      onChange={() => setFamilyType('existing')}
+                    />
+                    <Users size={18} />
+                    Join Existing Family
+                  </label>
+                </div>
+
+                {familyType === 'new' ? (
+                  <Input
+                    label="Family Group Name"
+                    placeholder="e.g. Smith Family"
+                    value={familyName}
+                    onChange={(e) => setFamilyName(e.target.value)}
+                    required
+                  />
+                ) : (
+                  <Input
+                    label="Enter Family Code"
+                    placeholder="6-digit family code"
+                    value={familyCode}
+                    onChange={handleFamilyCodeChange}
+                    required
+                  />
+                )}
+
+                <Button
+                  onClick={handleRegister}
+                  className={styles.submitBtn}
+                  isLoading={loading}
+                  disabled={loading}
+                  variant="primary"
+                >
+                  {!loading && <CheckCircle2 size={18} />}
+                  Complete Set Up
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className={styles.divider}>
+            <span>OR</span>
+          </div>
+
+          <p className={styles.footerText}>
+            Already on Expansis?{' '}
+            <span className={styles.textLink} onClick={() => router.push('/login')}>
+              Login
+            </span>
+          </p>
+        </Card>
+      </motion.div>
     </div>
   );
 }

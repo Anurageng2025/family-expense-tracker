@@ -1,179 +1,171 @@
 .container {
   max-width: 1000px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+/* Tabs / Segments */
 .segmentGroup {
-  display: inline-flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 2rem;
-  width: 100%;
+  display: flex;
+  background: var(--surface);
+  padding: 0.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  gap: 0.5rem;
+  width: fit-content;
 }
 
 .segmentBtn {
-  flex: 1;
   padding: 0.75rem 1.5rem;
   border: none;
   background: transparent;
-  color: #64748b;
-  font-weight: 600;
+  color: var(--foreground-muted);
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 12px;
   cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-  text-align: center;
+  transition: all var(--transition-fast);
 }
 
 .segmentBtn.active {
-  background: white;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: var(--background);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.cardHeader {
-  padding: 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.cardContent {
-  padding: 1.5rem;
-}
-
-/* Common list items like records */
-.listItem {
+/* Action bar */
+.actionBar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
-.listItem:last-child {
-  border-bottom: none;
+/* Member Summary */
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
 
 .memberStatsGrid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
+  margin: 1.5rem 0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .memberStatsGrid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 .statBox {
-  padding: 1rem;
-  border-radius: 8px;
-  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 20px;
+  background: var(--background);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .statLabel {
   font-size: 0.75rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
+  font-weight: 700;
+  color: var(--foreground-muted);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .statValue {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: var(--font-outfit);
 }
 
-.statSuccess { color: #10b981; }
-.statDanger { color: #ef4444; }
-.statPrimary { color: #3b82f6; }
-.statWarning { color: #f59e0b; }
+/* Colors */
+.statSuccess { color: var(--success); }
+.statDanger { color: var(--danger); }
+.statPrimary { color: var(--primary); }
+.statWarning { color: var(--warning); }
 
-.badge {
-  background: #eff6ff;
-  color: #2563eb;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: 1rem;
+/* List */
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: var(--background);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+  transition: all var(--transition-fast);
 }
 
-.btnDetails {
+.listItem:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.itemAmount {
+  font-weight: 800;
+  font-size: 1.125rem;
+  font-family: var(--font-outfit);
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.modalContent {
+  background: var(--surface);
   width: 100%;
-  padding: 0.75rem;
-  background: transparent;
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  margin-top: 1rem;
-}
-.btnDetails:hover {
-  background: #eff6ff;
+  max-width: 450px;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-xl);
 }
 
 .select {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 0.875rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-inter);
   font-size: 1rem;
-  color: #1e293b;
-  box-sizing: border-box;
-}
-
-.select:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.itemLabel {
-  display: flex;
-  flex-direction: column;
-}
-
-.itemAmount {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.amountIncome { color: #10b981; }
-.amountExpense { color: #ef4444; }
-
-.itemMeta {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-top: 0.25rem;
-}
-
-@media (max-width: 600px) {
-  .segmentGroup {
-    flex-direction: column;
-    gap: 0.5rem;
-    background: transparent;
-  }
-  .segmentBtn {
-    width: 100%;
-    background: #f1f5f9;
-  }
-  .segmentBtn.active {
-    background: white;
-  }
-  .cardContent {
-    padding: 1rem;
-  }
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.25rem;
 }

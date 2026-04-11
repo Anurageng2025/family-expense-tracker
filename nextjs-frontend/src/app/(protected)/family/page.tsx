@@ -3,26 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { familyApi, reminderApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
-import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './family.module.css';
-
-interface FamilyMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'ADMIN' | 'MEMBER';
-  createdAt: string;
-}
-
-interface FamilyData {
-  id: string;
-  familyName: string;
-  familyCode: string;
-  users: FamilyMember[];
-}
+import { Card, Badge, Button, Input } from '@/components/UI';
+import { 
+  Users, Key, Copy, Bell, Trash2, 
+  CheckCircle, Circle, X, Info,
+  Mail, Calendar, Shield, Share2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Family() {
-  const [family, setFamily] = useState<FamilyData | null>(null);
+  const [family, setFamily] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -32,11 +23,9 @@ export default function Family() {
     try {
       setLoading(true);
       const response = await familyApi.getFamily();
-      if (response.data.success) {
-        setFamily(response.data.data);
-      }
+      if (response.data.success) setFamily(response.data.data);
     } catch {
-      alert('Failed to load family data');
+      console.error('Failed to load family data');
     } finally {
       setLoading(false);
     }
@@ -47,11 +36,10 @@ export default function Family() {
   }, []);
 
   const handleDeleteMember = async (memberId: string) => {
-    if (!confirm('Are you sure you want to remove this member?')) return;
+    if (!confirm('Remove this member from the family workspace?')) return;
     try {
       setLoading(true);
       await familyApi.removeMember(memberId);
-      alert('Member removed successfully');
       fetchFamily();
     } catch {
       alert('Failed to remove member');
@@ -64,9 +52,9 @@ export default function Family() {
     try {
       setLoading(true);
       await reminderApi.sendToMember(memberId);
-      alert('Reminder sent!');
+      alert('Reminder dispatched!');
     } catch {
-      alert('Failed to send reminder');
+      alert('Network error while sending reminder');
     } finally {
       setLoading(false);
     }
@@ -75,25 +63,25 @@ export default function Family() {
   const handleSendToAll = async () => {
     try {
       setLoading(true);
-      const response = await reminderApi.sendToAll();
-      alert(response.data.data?.message || 'Reminders sent to all members!');
+      await reminderApi.sendToAll();
+      alert('Global reminders dispatched!');
     } catch {
-      alert('Failed to send reminders');
+      alert('Failed to reach all members');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSendBulk = async () => {
-    if (selectedMembers.length === 0) return alert('Select members first');
+    if (selectedMembers.length === 0) return;
     try {
       setLoading(true);
       await reminderApi.sendBulk(selectedMembers);
-      alert('Reminders sent successfully!');
       setShowReminderModal(false);
       setSelectedMembers([]);
+      alert('Batch reminders dispatched!');
     } catch {
-      alert('Failed to send reminders');
+      alert('Batch operation failed');
     } finally {
       setLoading(false);
     }
@@ -101,157 +89,207 @@ export default function Family() {
 
   const toggleMemberSelection = (memberId: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
     );
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  if (!family) return <Loader fullPage size="large" text="Loading family details..." />;
+  const copyCode = () => {
+    if (family?.familyCode) {
+      navigator.clipboard.writeText(family.familyCode);
+      alert('Invitation code copied to clipboard!');
+    }
+  };
+
+  if (!family) {
+    return (
+      <div className={styles.container} style={{ height: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+          <Users size={48} color="var(--border)" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { staggerChildren: 0.1 } 
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>{family.familyName}</h1>
+    <motion.div 
+      className={styles.container}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <header>
+        <h1 className={styles.title}>{family.familyName}</h1>
+        <p style={{ color: 'var(--foreground-muted)' }}>Manage collaborative financial access and synchronization.</p>
+      </header>
 
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>Family Details</div>
-        <div className={styles.cardContent}>
-          <p style={{ margin: 0, fontWeight: 500, color: '#1e293b' }}>
-            Family Code: <span style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{family.familyCode}</span>
-          </p>
-          <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>
-            Share this code with family members so they can join.
-          </p>
-        </div>
-      </div>
+      <motion.div variants={itemVariants}>
+        <Card className={styles.codeCard}>
+          <div className={styles.codeArea}>
+            <div className={styles.label}>Family Workspace Code</div>
+            <div className={styles.codeValue}>{family.familyCode}</div>
+            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--foreground-muted)' }}>
+              Provide this code to new members to grant them access to family books.
+            </p>
+          </div>
+          <Button variant="ghost" onClick={copyCode}>
+            <Copy size={18} style={{ marginRight: '8px' }} />
+            Copy
+          </Button>
+        </Card>
+      </motion.div>
 
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>Family Members ({family.users.length})</div>
-        <div className={styles.cardContent}>
+      <motion.div variants={itemVariants}>
+        <Card>
+          <div className={styles.cardHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Shield size={20} color="var(--primary)" />
+              <h2 className={styles.cardTitle}>Collective Members ({family.users.length})</h2>
+            </div>
+          </div>
+          
           <div className={styles.memberList}>
-            {family.users.map((member) => (
-              <div key={member.id} className={styles.memberItem}>
+            {family.users.map((member: any) => (
+              <motion.div key={member.id} className={styles.memberItem} whileHover={{ x: 4 }}>
                 <div className={styles.memberInfo}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                     <div className={styles.memberName}>{member.name}</div>
-                    <span className={`${styles.badge} ${member.role === 'ADMIN' ? styles.badgeAdmin : ''}`}>
+                    <Badge variant={member.role === 'ADMIN' ? 'success' : 'info'}>
                       {member.role}
-                    </span>
+                    </Badge>
                   </div>
                   <div className={styles.memberMeta}>
-                    {member.email} &bull; Joined: {formatDate(member.createdAt)}
+                    <Mail size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                    {member.email} &bull; <Calendar size={12} style={{ display: 'inline', margin: '0 4px' }} /> {formatDate(member.createdAt)}
                   </div>
                 </div>
                 
                 {user?.role === 'ADMIN' && (
                   <div className={styles.actions}>
-                    <button 
-                      className={`${styles.btn} ${styles.btnOutline}`}
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                      className={styles.actionBtn}
                       onClick={() => handleSendReminder(member.id)}
-                      title="Send Reminder"
+                      title="Direct Reminder"
+                      style={{ color: 'var(--primary)', background: 'rgba(79, 70, 229, 0.05)' }}
                     >
-                      Remind
-                    </button>
+                      <Bell size={16} />
+                    </motion.button>
 
                     {member.id !== user?.id && (
-                      <button 
-                        className={`${styles.btn} ${styles.btnDangerOutline}`}
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        className={styles.actionBtn}
                         onClick={() => handleDeleteMember(member.id)}
+                        style={{ color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.1)' }}
                       >
-                        Remove
-                      </button>
+                        <Trash2 size={16} />
+                      </motion.button>
                     )}
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
-      </div>
+        </Card>
+      </motion.div>
 
       {user?.role === 'ADMIN' && (
-        <div className={styles.card} style={{ borderTop: '4px solid #3b82f6' }}>
-          <div className={styles.cardHeader}>⏰ Send Expense Reminders</div>
-          <div className={styles.cardContent}>
-            <p style={{ marginBottom: '1.5rem', color: '#475569', fontSize: '0.875rem' }}>
-              Remind family members to log their daily expenses.
+        <motion.div variants={itemVariants}>
+          <Card className={styles.reminderCard}>
+            <div className={styles.cardHeader} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+              <Bell size={20} color="var(--primary)" />
+              <h2 className={styles.cardTitle}>Operations Control</h2>
+            </div>
+            <p style={{ marginBottom: '2rem', color: 'var(--foreground-muted)', fontSize: '0.875rem' }}>
+              Broadcast synchronization requests or target specific members to ensure financial accurate reporting.
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                onClick={handleSendToAll}
-                disabled={loading}
-              >
-                {loading ? <ButtonLoader text="Sending..." /> : 'Send to All Members'}
-              </button>
-              <button 
-                className={`${styles.btn} ${styles.btnOutline}`}
-                onClick={() => setShowReminderModal(true)}
-                disabled={loading}
-              >
-                Select & Send
-              </button>
+              <Button onClick={handleSendToAll} isLoading={loading} style={{ flex: 1 }}>
+                Broadcast to All
+              </Button>
+              <Button variant="ghost" onClick={() => setShowReminderModal(true)} disabled={loading} style={{ flex: 1 }}>
+                Targeted Dispatch
+              </Button>
             </div>
-          </div>
-        </div>
+          </Card>
+        </motion.div>
       )}
 
-      {showReminderModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2 className={styles.modalTitle}>Select Members to Remind</h2>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              {family.users.map(member => (
-                <label key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 0', borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedMembers.includes(member.id)}
-                    onChange={() => toggleMemberSelection(member.id)}
-                    style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 500, color: '#1e293b' }}>{member.name}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{member.email}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyItems: 'space-between' }}>
-              <button 
-                className={`${styles.btn} ${styles.btnOutline}`} 
-                onClick={() => {
-                  if (selectedMembers.length === family.users.length) setSelectedMembers([]);
-                  else setSelectedMembers(family.users.map(u => u.id));
-                }}
-              >
-                {selectedMembers.length === family.users.length ? 'Deselect All' : 'Select All'}
-              </button>
+      <AnimatePresence>
+        {showReminderModal && (
+          <div className={styles.modalOverlay}>
+            <motion.div 
+              className={styles.modalContent}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 className={styles.cardTitle}>Selection Manager</h2>
+                <button onClick={() => setShowReminderModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--foreground-muted)' }}>
+                  <X size={24} />
+                </button>
+              </div>
               
-              <div style={{ flex: 1 }}></div>
+              <div className={styles.memberSelectionList}>
+                {family.users.map((member: any) => (
+                  <label key={member.id} className={styles.selectionLabel}>
+                    <div onClick={() => toggleMemberSelection(member.id)} style={{ cursor: 'pointer' }}>
+                      {selectedMembers.includes(member.id) ? (
+                        <CheckCircle size={22} color="var(--primary)" />
+                      ) : (
+                        <Circle size={22} color="var(--border)" />
+                      )}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700 }}>{member.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>{member.email}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
 
-              <button 
-                className={`${styles.btn} ${styles.btnOutline}`} 
-                onClick={() => setShowReminderModal(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                className={`${styles.btn} ${styles.btnPrimary}`} 
-                onClick={handleSendBulk}
-                disabled={selectedMembers.length === 0}
-              >
-                Send Reminders ({selectedMembers.length})
-              </button>
-            </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    if (selectedMembers.length === family.users.length) setSelectedMembers([]);
+                    else setSelectedMembers(family.users.map((u: any) => u.id));
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  {selectedMembers.length === family.users.length ? 'Deselect' : 'Select All'}
+                </Button>
+                <Button 
+                  onClick={handleSendBulk} 
+                  disabled={selectedMembers.length === 0}
+                  isLoading={loading}
+                  style={{ flex: 2 }}
+                >
+                  Dispatch Requests ({selectedMembers.length})
+                </Button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

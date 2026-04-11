@@ -33,7 +33,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      !originalRequest.url?.includes('/auth/')
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -91,8 +95,8 @@ export const authApi = {
 
 // Income API
 export const incomeApi = {
-  getMyIncomes: () => api.get<ApiResponse>('/incomes/my'),
-  getFamilyIncomes: () => api.get<ApiResponse>('/incomes/family'),
+  getMyIncomes: (bookId?: string) => api.get<ApiResponse>(`/incomes/my${bookId ? `?bookId=${bookId}` : ''}`),
+  getFamilyIncomes: (bookId?: string) => api.get<ApiResponse>(`/incomes/family${bookId ? `?bookId=${bookId}` : ''}`),
   getMyStats: () => api.get<ApiResponse>('/incomes/my/stats'),
   getById: (id: string) => api.get<ApiResponse>(`/incomes/${id}`),
   create: (data: any) => api.post<ApiResponse>('/incomes', data),
@@ -102,8 +106,8 @@ export const incomeApi = {
 
 // Expense API
 export const expenseApi = {
-  getMyExpenses: () => api.get<ApiResponse>('/expenses/my'),
-  getFamilyExpenses: () => api.get<ApiResponse>('/expenses/family'),
+  getMyExpenses: (bookId?: string) => api.get<ApiResponse>(`/expenses/my${bookId ? `?bookId=${bookId}` : ''}`),
+  getFamilyExpenses: (bookId?: string) => api.get<ApiResponse>(`/expenses/family${bookId ? `?bookId=${bookId}` : ''}`),
   getMyStats: () => api.get<ApiResponse>('/expenses/my/stats'),
   getById: (id: string) => api.get<ApiResponse>(`/expenses/${id}`),
   create: (data: any) => api.post<ApiResponse>('/expenses', data),
@@ -113,12 +117,29 @@ export const expenseApi = {
 
 // Dashboard API
 export const dashboardApi = {
-  getMyDashboard: () => api.get<ApiResponse>('/dashboard/my'),
-  getFamilyDashboard: () => api.get<ApiResponse>('/dashboard/family'),
-  getMyTrends: (months?: number) =>
-    api.get<ApiResponse>(`/dashboard/my/trends${months ? `?months=${months}` : ''}`),
-  getFamilyTrends: (months?: number) =>
-    api.get<ApiResponse>(`/dashboard/family/trends${months ? `?months=${months}` : ''}`),
+  getMyDashboard: (bookId?: string) => api.get<ApiResponse>(`/dashboard/my${bookId ? `?bookId=${bookId}` : ''}`),
+  getFamilyDashboard: (bookId?: string) => api.get<ApiResponse>(`/dashboard/family${bookId ? `?bookId=${bookId}` : ''}`),
+  getMyTrends: (months?: number, bookId?: string) => {
+    let url = `/dashboard/my/trends?q=1`;
+    if (months) url += `&months=${months}`;
+    if (bookId) url += `&bookId=${bookId}`;
+    return api.get<ApiResponse>(url);
+  },
+  getFamilyTrends: (months?: number, bookId?: string) => {
+    let url = `/dashboard/family/trends?q=1`;
+    if (months) url += `&months=${months}`;
+    if (bookId) url += `&bookId=${bookId}`;
+    return api.get<ApiResponse>(url);
+  },
+};
+
+// Book API
+export const bookApi = {
+  getBooks: () => api.get<ApiResponse>('/books'),
+  getById: (id: string) => api.get<ApiResponse>(`/books/${id}`),
+  create: (data: any) => api.post<ApiResponse>('/books', data),
+  update: (id: string, data: any) => api.put<ApiResponse>(`/books/${id}`, data),
+  delete: (id: string) => api.delete<ApiResponse>(`/books/${id}`),
 };
 
 // Family API

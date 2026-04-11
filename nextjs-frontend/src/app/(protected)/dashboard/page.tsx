@@ -4,16 +4,25 @@ import React, { useEffect, useState } from 'react';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { dashboardApi, incomeApi, expenseApi } from '@/services/api';
+import { useBookStore } from '@/store/bookStore';
 import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './dashboard.module.css';
+import { Card, Badge, Button, Input, Select } from '@/components/UI';
+import { 
+  TrendingUp, TrendingDown, Wallet, Scale, 
+  Plus, Calendar, Tag, FileText, X, 
+  Filter, Users as UsersIcon, User as UserIcon,
+  ChevronRight, ArrowUpRight, ArrowDownRight
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
 const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
 
-
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function Dashboard() {
+  const { currentBookId } = useBookStore();
   const [view, setView] = useState<'family' | 'personal'>('family');
   const [familyData, setFamilyData] = useState<any>(null);
   const [personalData, setPersonalData] = useState<any>(null);
@@ -28,24 +37,22 @@ export default function Dashboard() {
     date: new Date().toISOString().split('T')[0],
     notes: '',
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
+    if (!currentBookId) return;
     try {
       setLoading(true);
       setErrorMsg('');
       const [familyRes, personalRes] = await Promise.all([
-        dashboardApi.getFamilyDashboard(),
-        dashboardApi.getMyDashboard(),
+        dashboardApi.getFamilyDashboard(currentBookId),
+        dashboardApi.getMyDashboard(currentBookId),
       ]);
 
-      if (familyRes.data.success) {
-        setFamilyData(familyRes.data.data);
-      }
-      if (personalRes.data.success) {
-        setPersonalData(personalRes.data.data);
-      }
+      if (familyRes.data.success) setFamilyData(familyRes.data.data);
+      if (personalRes.data.success) setPersonalData(personalRes.data.data);
     } catch (error: any) {
-      setErrorMsg('Failed to load dashboard data.');
+      setErrorMsg('Failed to sync with financial records.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +60,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentBookId]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -66,39 +73,40 @@ export default function Dashboard() {
   const activeCategories = fabType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   const handleFabSave = async () => {
-    if (!fabFormData.amount || parseFloat(fabFormData.amount) <= 0) {
-      alert('Please enter a valid amount');
+    // Basic validation
+    const errors: Record<string, string> = {};
+    if (!fabFormData.amount) errors.amount = 'Amount is required';
+    else if (parseFloat(fabFormData.amount) <= 0) errors.amount = 'Amount must be positive';
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
+
     try {
       setLoading(true);
+      setFieldErrors({});
       const payload = {
         amount: parseFloat(fabFormData.amount),
         category: fabFormData.category,
         date: new Date(fabFormData.date).toISOString(),
         notes: fabFormData.notes || undefined,
+        bookId: currentBookId,
       };
 
-      if (fabType === 'income') {
-        await incomeApi.create(payload);
-      } else {
-        await expenseApi.create(payload);
-      }
+      if (fabType === 'income') await incomeApi.create(payload);
+      else await expenseApi.create(payload);
       
       setShowFabModal(false);
-      
-      // Reset form default
       setFabFormData({
         amount: '',
         category: fabType === 'income' ? 'Salary' : 'Food',
         date: new Date().toISOString().split('T')[0],
         notes: '',
       });
-
-      // Refresh dashboard data internally to reflect the new transaction instantly
       fetchData();
     } catch {
-      alert(`Failed to save ${fabType}`);
+      setErrorMsg(`Failed to save ${fabType}. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -112,6 +120,15 @@ export default function Dashboard() {
     }));
   };
 
+  const handleOpenFab = (type: 'expense' | 'income') => {
+    setFabType(type);
+    setFabFormData(prev => ({
+      ...prev,
+      category: type === 'income' ? 'Salary' : 'Food'
+    }));
+    setShowFabModal(true);
+  };
+
   const data = view === 'family' ? familyData : personalData;
 
   const incomePieData = data && Object.keys(data.incomeByCategory || {}).length > 0
@@ -120,7 +137,9 @@ export default function Dashboard() {
         datasets: [
           {
             data: Object.values(data.incomeByCategory || {}),
-            backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#64748b'],
+            backgroundColor: ['#4f46e5', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 10
           },
         ],
       }
@@ -132,7 +151,9 @@ export default function Dashboard() {
         datasets: [
           {
             data: Object.values(data.expenseByCategory || {}),
-            backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#64748b'],
+            backgroundColor: ['#ef4444', '#f59e0b', '#fbbf24', '#3b82f6', '#10b981', '#64748b'],
+            borderWidth: 0,
+            hoverOffset: 10
           },
         ],
       }
@@ -140,12 +161,13 @@ export default function Dashboard() {
 
   const balanceBarData = data
     ? {
-        labels: ['Income', 'Expense', 'Balance'],
+        labels: ['Inflow', 'Outflow', 'Net'],
         datasets: [
           {
             label: 'Amount',
             data: [data.totalIncome || 0, data.totalExpense || 0, data.balance || 0],
-            backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
+            backgroundColor: ['#10b981', '#ef4444', '#4f46e5'],
+            borderRadius: 8,
           },
         ],
       }
@@ -155,220 +177,267 @@ export default function Dashboard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
+      legend: { position: 'bottom' as const, labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } },
       tooltip: {
+        backgroundColor: '#1e293b',
+        padding: 12,
+        titleFont: { size: 14, weight: 'bold' as const },
+        bodyFont: { size: 13 },
         callbacks: {
-          label: (context: any) => {
-            let label = context.dataset.label || '';
-            if (label) label += ': ';
-            if (context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y);
-            } else if (context.parsed !== undefined) {
-              label += formatCurrency(context.parsed);
-            }
-            return label;
-          }
-        }
-      }
-    }
-  };
-
-  const barOptions = {
-    ...chartOptions,
-    scales: {
-      y: {
-        ticks: {
-          callback: (value: any) => formatCurrency(value)
+          label: (ctx: any) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
         }
       }
     }
   };
 
   if (loading && !data) {
-    return <Loader fullPage size="large" text="Analyzing dashboard data..." />;
+    return (
+      <div className={styles.container} style={{ height: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+          <Wallet size={40} color="var(--primary)" />
+        </motion.div>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      <div className={styles.controls}>
+      <header className={styles.controls}>
         <div className={styles.segmentGroup}>
           <button 
             className={`${styles.segmentBtn} ${view === 'family' ? styles.active : ''}`}
             onClick={() => setView('family')}
           >
+            <UsersIcon size={14} style={{ marginRight: '0.5rem' }} />
             Family
           </button>
           <button 
             className={`${styles.segmentBtn} ${view === 'personal' ? styles.active : ''}`}
             onClick={() => setView('personal')}
           >
+            <UserIcon size={14} style={{ marginRight: '0.5rem' }} />
             Personal
           </button>
         </div>
-      </div>
+      </header>
 
-      {errorMsg && <div style={{ color: 'red', marginBottom: '1rem' }}>{errorMsg}</div>}
+      {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
 
-      {data && (
-        <>
-          <div className={styles.grid}>
-            <div className={`${styles.card} ${styles.success}`}>
-              <div className={styles.cardTitle}>Total Income</div>
-              <div className={styles.cardValue}>{formatCurrency(data.totalIncome || 0)}</div>
-            </div>
-            
-            <div className={`${styles.card} ${styles.danger}`}>
-              <div className={styles.cardTitle}>Total Expense</div>
-              <div className={styles.cardValue}>{formatCurrency(data.totalExpense || 0)}</div>
-            </div>
-
-            <div className={`${styles.card} ${data.balance >= 0 ? styles.primary : styles.warning}`}>
-              <div className={styles.cardTitle}>Balance</div>
-              <div className={styles.cardValue}>{formatCurrency(data.balance || 0)}</div>
-            </div>
-          </div>
-
-          <div className={styles.chartsGrid}>
-            <div className={styles.chartCard} style={{ gridColumn: '1 / -1' }}>
-              <div className={styles.chartHeader}>Overview</div>
-              {balanceBarData ? (
-                <div style={{ height: '300px' }}>
-                  <Bar data={balanceBarData} options={barOptions} />
-                </div>
-              ) : <p>No data</p>}
-            </div>
-
-            <div className={styles.chartCard}>
-              <div className={styles.chartHeader}>Income by Category</div>
-              {incomePieData ? (
-                <div style={{ padding: '0 2rem' }}>
-                  <Pie data={incomePieData} options={chartOptions} />
-                </div>
-              ) : <p>No income data</p>}
-            </div>
-
-            <div className={styles.chartCard}>
-              <div className={styles.chartHeader}>Expense by Category</div>
-              {expensePieData ? (
-                <div style={{ padding: '0 2rem' }}>
-                  <Pie data={expensePieData} options={chartOptions} />
-                </div>
-              ) : <p>No expense data</p>}
-            </div>
-          </div>
-
-          {view === 'family' && familyData?.memberStats && (
-            <div className={styles.chartCard} style={{ marginTop: '1.5rem' }}>
-              <div className={styles.chartHeader}>Member Breakdown</div>
-              <div className={styles.memberList}>
-                {familyData.memberStats.map((member: any) => (
-                  <div key={member.userId} className={styles.memberItem}>
-                    <div className={styles.memberName}>{member.userName}</div>
-                    <div className={styles.memberStats}>
-                      <div className={styles.memberStat}>
-                        <span className={styles.memberStatLabel}>Income</span>
-                        <strong style={{ color: '#10b981' }}>{formatCurrency(member.income)}</strong>
-                      </div>
-                      <div className={styles.memberStat}>
-                        <span className={styles.memberStatLabel}>Expense</span>
-                        <strong style={{ color: '#ef4444' }}>{formatCurrency(member.expense)}</strong>
-                      </div>
-                      <div className={styles.memberStat}>
-                        <span className={styles.memberStatLabel}>Balance</span>
-                        <strong style={{ color: member.balance >= 0 ? '#3b82f6' : '#f59e0b' }}>
-                          {formatCurrency(member.balance)}
-                        </strong>
-                      </div>
-                    </div>
+      <AnimatePresence mode="wait">
+        {data && (
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <div className={styles.grid}>
+              <Card className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <div className={styles.statLabel}>Inflow</div>
+                  <div className={styles.statIcon} style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}>
+                    <TrendingUp size={20} />
                   </div>
-                ))}
+                </div>
+                <div className={styles.statValue}>{formatCurrency(data.totalIncome || 0)}</div>
+                <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--success)' }}>
+                  <ArrowUpRight size={12} />
+                  <span>Total Earnings</span>
+                </div>
+              </Card>
+              
+              <Card className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <div className={styles.statLabel}>Outflow</div>
+                  <div className={styles.statIcon} style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }}>
+                    <TrendingDown size={20} />
+                  </div>
+                </div>
+                <div className={styles.statValue}>{formatCurrency(data.totalExpense || 0)}</div>
+                <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--danger)' }}>
+                  <ArrowDownRight size={12} />
+                  <span>Total Spending</span>
+                </div>
+              </Card>
+
+              <Card className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <div className={styles.statLabel}>Net Balance</div>
+                  <div className={styles.statIcon} style={{ background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)' }}>
+                    <Scale size={20} />
+                  </div>
+                </div>
+                <div className={styles.statValue}>{formatCurrency(data.balance || 0)}</div>
+                <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--primary)' }}>
+                  <Wallet size={12} />
+                  <span>Available Funds</span>
+                </div>
+              </Card>
+            </div>
+
+            <div className={styles.chartsGrid}>
+              <Card className={styles.chartCard}>
+                <div className={styles.chartHeader}>
+                  <h3 className={styles.chartTitle}>Financial Overview</h3>
+                  <Badge variant="info">Monthly</Badge>
+                </div>
+                <div style={{ height: '320px' }}>
+                  {balanceBarData ? (
+                    <Bar data={balanceBarData} options={{...chartOptions, scales: { y: { ticks: { callback: (v: any) => v >= 1000 ? v/1000 + 'k' : v }}}}} />
+                  ) : <p>No data available</p>}
+                </div>
+              </Card>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <Card className={styles.chartCard} style={{ flex: 1 }}>
+                  <div className={styles.chartHeader}>
+                    <h3 className={styles.chartTitle}>Expense Mix</h3>
+                  </div>
+                  <div style={{ height: '240px' }}>
+                    {expensePieData ? <Pie data={expensePieData} options={chartOptions} /> : <p>No expenses</p>}
+                  </div>
+                </Card>
               </div>
             </div>
-          )}
-        </>
-      )}
 
-      {/* Floating Action Button */}
-      <button className={styles.fab} onClick={() => setShowFabModal(true)} title="Add Transaction">
-        <span>+</span>
-      </button>
+            {view === 'family' && data.memberStats && (
+              <Card className={styles.chartCard} style={{ marginTop: '1.5rem' }}>
+                <div className={styles.chartHeader}>
+                  <h3 className={styles.chartTitle}>Contribution by Member</h3>
+                  <UsersIcon size={18} color="var(--foreground-muted)" />
+                </div>
+                <div className={styles.memberList}>
+                  {data.memberStats.map((member: any) => (
+                    <motion.div 
+                      key={member.userId} 
+                      className={styles.memberItem}
+                      whileHover={{ x: 5 }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div className={styles.memberName}>{member.userName}</div>
+                        <ChevronRight size={16} color="var(--border)" />
+                      </div>
+                      <div className={styles.memberStats}>
+                        <div>
+                          <span className={styles.memberStatLabel}>Inflow</span>
+                          <div className={styles.memberStatValue} style={{ color: 'var(--success)' }}>{formatCurrency(member.income)}</div>
+                        </div>
+                        <div>
+                          <span className={styles.memberStatLabel}>Outflow</span>
+                          <div className={styles.memberStatValue} style={{ color: 'var(--danger)' }}>{formatCurrency(member.expense)}</div>
+                        </div>
+                        <div>
+                          <span className={styles.memberStatLabel}>Net</span>
+                          <div className={styles.memberStatValue} style={{ color: member.balance >= 0 ? 'var(--primary)' : 'var(--warning)' }}>
+                            {formatCurrency(member.balance)}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* FAB Modal */}
-      {showFabModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2 className={styles.modalTitle}>Add Transaction</h2>
+      <div className={styles.fabContainer}>
+        <motion.button 
+          className={`${styles.fab} ${styles.fabIn}`} 
+          onClick={() => handleOpenFab('income')}
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Plus size={18} />
+          Cash In
+        </motion.button>
+        <motion.button 
+          className={`${styles.fab} ${styles.fabOut}`} 
+          onClick={() => handleOpenFab('expense')}
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Plus size={18} />
+          Cash Out
+        </motion.button>
+      </div>
 
-            <div className={styles.typeToggle}>
-              <button 
-                className={`${styles.typeBtn} ${fabType === 'expense' ? styles.activeExpense : ''}`}
-                onClick={() => handleFabTypeSwitch('expense')}
-              >
-                Expense
-              </button>
-              <button 
-                className={`${styles.typeBtn} ${fabType === 'income' ? styles.activeIncome : ''}`}
-                onClick={() => handleFabTypeSwitch('income')}
-              >
-                Income
-              </button>
-            </div>
+      <AnimatePresence>
+        {showFabModal && (
+          <div className={styles.modalOverlay}>
+            <motion.div 
+              className={styles.modalContent}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h2 className={styles.chartTitle} style={{ fontSize: '1.5rem' }}>New Record</h2>
+                <button onClick={() => setShowFabModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--foreground-muted)' }}>
+                  <X size={24} />
+                </button>
+              </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Amount</label>
-              <input
-                type="number"
-                className={styles.input}
-                value={fabFormData.amount}
-                onChange={(e) => setFabFormData({ ...fabFormData, amount: e.target.value })}
-                placeholder="0"
-              />
-            </div>
+              <div className={styles.typeToggle}>
+                <button 
+                  className={`${styles.typeBtn} ${fabType === 'expense' ? styles.activeExpense : ''}`}
+                  onClick={() => handleFabTypeSwitch('expense')}
+                >
+                  <TrendingDown size={14} style={{ marginRight: '6px' }} />
+                  Expense
+                </button>
+                <button 
+                  className={`${styles.typeBtn} ${fabType === 'income' ? styles.activeIncome : ''}`}
+                  onClick={() => handleFabTypeSwitch('income')}
+                >
+                  <TrendingUp size={14} style={{ marginRight: '6px' }} />
+                  Income
+                </button>
+              </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Category</label>
-              <select
-                className={styles.select}
-                value={fabFormData.category}
-                onChange={(e) => setFabFormData({ ...fabFormData, category: e.target.value })}
-              >
-                {activeCategories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+              <div className={styles.form}>
+                <Input
+                  label="Amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={fabFormData.amount}
+                  onChange={(e) => setFabFormData({ ...fabFormData, amount: e.target.value })}
+                  error={fieldErrors.amount}
+                  required
+                />
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Date</label>
-              <input
-                type="date"
-                className={styles.input}
-                value={fabFormData.date}
-                onChange={(e) => setFabFormData({ ...fabFormData, date: e.target.value })}
-              />
-            </div>
+                <Select
+                  label="Category"
+                  value={fabFormData.category}
+                  onChange={(e) => setFabFormData({ ...fabFormData, category: e.target.value })}
+                  options={activeCategories.map(cat => ({ label: cat, value: cat }))}
+                />
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Notes (Optional)</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={fabFormData.notes}
-                onChange={(e) => setFabFormData({ ...fabFormData, notes: e.target.value })}
-                placeholder="What was this for?"
-              />
-            </div>
+                <Input
+                  label="Transaction Date"
+                  type="date"
+                  value={fabFormData.date}
+                  onChange={(e) => setFabFormData({ ...fabFormData, date: e.target.value })}
+                />
 
-            <div className={styles.modalActions}>
-              <button className={styles.cancelBtn} onClick={() => setShowFabModal(false)} disabled={loading}>
-                Cancel
-              </button>
-              <button className={styles.saveBtn} onClick={handleFabSave} disabled={loading}>
-                {loading ? <ButtonLoader text="Saving..." /> : 'Save'}
-              </button>
-            </div>
+                <Input
+                  label="Notes"
+                  placeholder="Optional details..."
+                  value={fabFormData.notes}
+                  onChange={(e) => setFabFormData({ ...fabFormData, notes: e.target.value })}
+                />
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <Button variant="ghost" onClick={() => setShowFabModal(false)} style={{ flex: 1 }}>Cancel</Button>
+                  <Button onClick={handleFabSave} isLoading={loading} style={{ flex: 2 }}>Save Record</Button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

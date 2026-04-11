@@ -1,85 +1,134 @@
 .container {
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+.profileCard {
+  position: relative;
   overflow: hidden;
-  margin-bottom: 2rem;
 }
 
 .cardHeader {
-  padding: 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.cardContent {
-  padding: 1.5rem;
-}
-
-.item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
 
-.item:last-child {
-  border-bottom: none;
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+/* User Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .infoGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.infoItem {
+  padding: 1.25rem;
+  background: var(--background);
+  border-radius: 16px;
+  border: 1px solid var(--border);
 }
 
 .label {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
 }
 
 .value {
   font-size: 1rem;
-  font-weight: 500;
-  color: #0f172a;
-}
-
-.badge {
-  background: #eff6ff;
-  color: #2563eb;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--foreground);
 }
 
-.badgeAdmin {
-  background: #f0fdf4;
-  color: #16a34a;
+/* Book List */
+.bookList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.logoutBtn {
-  width: 100%;
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 8px;
+.bookItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: var(--background);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+}
+
+.bookItem:hover {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.bookName {
+  font-weight: 700;
   font-size: 1rem;
-  font-weight: 600;
+  color: var(--foreground);
+}
+
+.addBookSection {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--background);
+  border-radius: 20px;
+  border: 2px dashed var(--border);
+  margin-top: 1rem;
+}
+
+.bookInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.875rem;
+}
+
+/* Logout */
+.logoutBtn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
 }
 
 .logoutBtn:hover {
-  background: #dc2626;
-}
-
-@media (max-width: 600px) {
-  .cardContent {
-    padding: 1rem;
-  }
+  background: var(--danger);
+  color: white;
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
 }

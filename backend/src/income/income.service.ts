@@ -10,9 +10,38 @@ export class IncomeService {
    * Create a new income record
    */
   async createIncome(userId: string, dto: CreateIncomeDto) {
+    let bookId = dto.bookId;
+
+    // If no bookId provided, find the default book for the user's family
+    if (!bookId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { familyId: true },
+      });
+
+      const defaultBook = await this.prisma.book.findFirst({
+        where: { familyId: user.familyId, isDefault: true },
+      });
+
+      if (!defaultBook) {
+        // Create a default book if it doesn't exist
+        const newDefault = await this.prisma.book.create({
+          data: {
+            familyId: user.familyId,
+            name: 'Ongoing',
+            isDefault: true,
+          },
+        });
+        bookId = newDefault.id;
+      } else {
+        bookId = defaultBook.id;
+      }
+    }
+
     const income = await this.prisma.income.create({
       data: {
         userId,
+        bookId,
         amount: dto.amount,
         category: dto.category,
         date: new Date(dto.date),
@@ -24,11 +53,14 @@ export class IncomeService {
   }
 
   /**
-   * Get all incomes for a user
+   * Get all incomes for a user, optionally filtered by book
    */
-  async getUserIncomes(userId: string) {
+  async getUserIncomes(userId: string, bookId?: string) {
     const incomes = await this.prisma.income.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        ...(bookId && { bookId })
+      },
       orderBy: { date: 'desc' },
     });
 
@@ -36,14 +68,15 @@ export class IncomeService {
   }
 
   /**
-   * Get all incomes for a family
+   * Get all incomes for a family, optionally filtered by book
    */
-  async getFamilyIncomes(familyId: string) {
+  async getFamilyIncomes(familyId: string, bookId?: string) {
     const incomes = await this.prisma.income.findMany({
       where: {
         user: {
           familyId,
         },
+        ...(bookId && { bookId })
       },
       include: {
         user: {

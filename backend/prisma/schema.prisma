@@ -19,8 +19,25 @@ model Family {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   users User[]
+  books Book[]
 
   @@map("families")
+}
+
+// Expense Books table
+model Book {
+  id        String   @id @default(uuid())
+  familyId  String   @map("family_id")
+  name      String
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family   Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  incomes  Income[]
+  expenses Expense[]
+
+  @@map("books")
 }
 
 // Users table
@@ -52,6 +69,7 @@ enum UserRole {
 model Income {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
+  bookId    String?  @map("book_id") // Optional for migration, will make required later
   amount    Float
   category  String
   date      DateTime
@@ -59,7 +77,8 @@ model Income {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book? @relation(fields: [bookId], references: [id], onDelete: SetNull)
 
   @@map("incomes")
 }
@@ -68,6 +87,7 @@ model Income {
 model Expense {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
+  bookId    String?  @map("book_id") // Optional for migration, will make required later
   amount    Float
   category  String
   date      DateTime
@@ -75,7 +95,8 @@ model Expense {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book? @relation(fields: [bookId], references: [id], onDelete: SetNull)
 
   @@map("expenses")
 }
@@ -104,4 +125,3 @@ model RefreshToken {
 
   @@map("refresh_tokens")
 }
-

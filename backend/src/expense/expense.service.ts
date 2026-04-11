@@ -10,9 +10,38 @@ export class ExpenseService {
    * Create a new expense record
    */
   async createExpense(userId: string, dto: CreateExpenseDto) {
+    let bookId = dto.bookId;
+
+    // If no bookId provided, find the default book for the user's family
+    if (!bookId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { familyId: true },
+      });
+
+      const defaultBook = await this.prisma.book.findFirst({
+        where: { familyId: user.familyId, isDefault: true },
+      });
+
+      if (!defaultBook) {
+        // Create a default book if it doesn't exist
+        const newDefault = await this.prisma.book.create({
+          data: {
+            familyId: user.familyId,
+            name: 'Ongoing',
+            isDefault: true,
+          },
+        });
+        bookId = newDefault.id;
+      } else {
+        bookId = defaultBook.id;
+      }
+    }
+
     const expense = await this.prisma.expense.create({
       data: {
         userId,
+        bookId,
         amount: dto.amount,
         category: dto.category,
         date: new Date(dto.date),
@@ -24,11 +53,14 @@ export class ExpenseService {
   }
 
   /**
-   * Get all expenses for a user
+   * Get all expenses for a user, optionally filtered by book
    */
-  async getUserExpenses(userId: string) {
+  async getUserExpenses(userId: string, bookId?: string) {
     const expenses = await this.prisma.expense.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        ...(bookId && { bookId })
+      },
       orderBy: { date: 'desc' },
     });
 
@@ -36,14 +68,15 @@ export class ExpenseService {
   }
 
   /**
-   * Get all expenses for a family
+   * Get all expenses for a family, optionally filtered by book
    */
-  async getFamilyExpenses(familyId: string) {
+  async getFamilyExpenses(familyId: string, bookId?: string) {
     const expenses = await this.prisma.expense.findMany({
       where: {
         user: {
           familyId,
         },
+        ...(bookId && { bookId })
       },
       include: {
         user: {

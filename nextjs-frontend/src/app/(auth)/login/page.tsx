@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
-import { ButtonLoader } from '@/components/Loader/Loader';
+import { Card, Input, Button } from '@/components/UI';
+import { LogIn, Key, Mail, Wallet, ArrowLeft, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../auth.module.css';
 
 export default function Login() {
@@ -20,6 +22,7 @@ export default function Login() {
 
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  
   const handleFamilyCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     if (val.length <= 6) {
@@ -43,7 +46,8 @@ export default function Login() {
         const { user, accessToken, refreshToken } = response.data.data;
         setAuth(user, accessToken, refreshToken);
         setSuccessMsg('Login successful!');
-        router.push('/dashboard');
+        // Small delay for the success message to be seen
+        setTimeout(() => router.push('/'), 1000); 
       }
     } catch (error: any) {
       setErrorMsg(error.response?.data?.message || 'Login failed');
@@ -79,109 +83,153 @@ export default function Login() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Family Expense Tracker</h1>
-        <p className={styles.subtitle}>
-          {showForgotForm ? 'Forgot Family Code' : 'Login to your family account'}
-        </p>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={styles.wrapper}
+      >
+        <div className={styles.logoSection}>
+          <div className={styles.iconCircle}>
+            <Wallet size={32} />
+          </div>
+          <h1 className={styles.brandTitle}>Expansis</h1>
+        </div>
 
-        {errorMsg && <div className={styles.error}>{errorMsg}</div>}
-        {successMsg && <div className={styles.success}>{successMsg}</div>}
+        <Card className={styles.authCard}>
+          <AnimatePresence mode="wait">
+            {!showForgotForm ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <div className={styles.cardHeader}>
+                  <h2 className={styles.cardTitle}>Welcome Back</h2>
+                  <p className={styles.cardSubtitle}>Login to your family dashboard</p>
+                </div>
 
-        {!showForgotForm ? (
-          <form onSubmit={handleLogin}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Family Code</label>
-              <input
-                className={styles.input}
-                type="text"
-                inputMode="numeric"
-                placeholder="6-digit family code"
-                value={familyCode}
-                onChange={handleFamilyCodeChange}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Email</label>
-              <input
-                className={styles.input}
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Password</label>
-              <input
-                className={styles.input}
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+                {errorMsg && (
+                  <div className={styles.alertError}>
+                    <AlertCircle size={18} />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+                {successMsg && <div className={styles.alertSuccess}>{successMsg}</div>}
 
-            <button type="submit" className={styles.button} disabled={loading}>
-              {loading ? <ButtonLoader text="Logging in..." /> : 'Login'}
-            </button>
+                <form onSubmit={handleLogin} className={styles.form}>
+                  <Input
+                    label="Family Code"
+                    placeholder="6-digit code"
+                    value={familyCode}
+                    onChange={handleFamilyCodeChange}
+                    maxLength={6}
+                    required
+                  />
+                  <Input
+                    label="Email Address"
+                    type="email"
+                    placeholder="name@family.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label="Password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
 
-            <button
-              type="button"
-              className={styles.buttonClear}
-              onClick={() => {
-                setShowForgotForm(true);
-                setErrorMsg('');
-                setSuccessMsg('');
-              }}
-            >
-              Forgot Family Code?
-            </button>
+                  <Button 
+                    type="submit" 
+                    className={styles.submitBtn} 
+                    isLoading={loading}
+                    disabled={loading}
+                  >
+                    {!loading && <LogIn size={18} />}
+                    Login to Portal
+                  </Button>
 
-            <p className={styles.footerText}>
-              Don't have an account?{' '}
-              <span className={styles.link} onClick={() => router.push('/register')}>
-                Register
-              </span>
-            </p>
-          </form>
-        ) : (
-          <form onSubmit={handleForgotFamilyCode}>
-            <p style={{ textAlign: 'center', fontSize: '0.875rem', marginBottom: '1rem', color: '#64748b' }}>
-              Enter your email address and we'll send your family code to your inbox.
-            </p>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Email</label>
-              <input
-                className={styles.input}
-                type="email"
-                placeholder="Enter your email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                required
-              />
-            </div>
+                  <button
+                    type="button"
+                    className={styles.ghostLink}
+                    onClick={() => {
+                      setShowForgotForm(true);
+                      setErrorMsg('');
+                      setSuccessMsg('');
+                    }}
+                  >
+                    <Key size={14} />
+                    Forgot Family Code?
+                  </button>
 
-            <button type="submit" className={styles.button} disabled={loading}>
-              {loading ? <ButtonLoader text="Sending..." /> : 'Send Family Code'}
-            </button>
+                  <div className={styles.divider}>
+                    <span>OR</span>
+                  </div>
 
-            <button
-              type="button"
-              className={styles.buttonClear}
-              onClick={() => {
-                setShowForgotForm(false);
-                setErrorMsg('');
-              }}
-            >
-              Back to Login
-            </button>
-          </form>
-        )}
-      </div>
+                  <p className={styles.footerText}>
+                    New family?{' '}
+                    <span className={styles.textLink} onClick={() => router.push('/register')}>
+                      Create Account
+                    </span>
+                  </p>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="forgot"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <div className={styles.cardHeader}>
+                  <h2 className={styles.cardTitle}>Recover Code</h2>
+                  <p className={styles.cardSubtitle}>We'll send your family code via email</p>
+                </div>
+
+                {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
+
+                <form onSubmit={handleForgotFamilyCode} className={styles.form}>
+                  <Input
+                    label="Email Address"
+                    type="email"
+                    placeholder="Your registered email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                  />
+
+                  <Button 
+                    type="submit" 
+                    variant="primary"
+                    className={styles.submitBtn} 
+                    isLoading={loading}
+                    disabled={loading}
+                  >
+                    {!loading && <Send size={18} />}
+                    Send Code
+                  </Button>
+
+                  <button
+                    type="button"
+                    className={styles.ghostLink}
+                    onClick={() => {
+                      setShowForgotForm(false);
+                      setErrorMsg('');
+                    }}
+                  >
+                    <ArrowLeft size={14} />
+                    Back to Login
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      </motion.div>
     </div>
   );
 }

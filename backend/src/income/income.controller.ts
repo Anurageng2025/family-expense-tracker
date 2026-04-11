@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { IncomeService } from './income.service';
@@ -38,9 +39,9 @@ export class IncomeController {
    * Get all incomes for the logged-in user
    */
   @Get('my')
-  async getMyIncomes(@CurrentUser() user) {
+  async getMyIncomes(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const incomes = await this.incomeService.getUserIncomes(user.userId);
+      const incomes = await this.incomeService.getUserIncomes(user.userId, bookId);
       return ResponseUtil.success('User incomes retrieved', incomes);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
@@ -52,9 +53,9 @@ export class IncomeController {
    * Get all incomes for the family
    */
   @Get('family')
-  async getFamilyIncomes(@CurrentUser() user) {
+  async getFamilyIncomes(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const incomes = await this.incomeService.getFamilyIncomes(user.familyId);
+      const incomes = await this.incomeService.getFamilyIncomes(user.familyId, bookId);
       return ResponseUtil.success('Family incomes retrieved', incomes);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);

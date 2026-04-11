@@ -8,6 +8,8 @@ import { ExpenseModule } from './expense/expense.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 
+import { BookModule } from './book/book.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +21,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     IncomeModule,
     ExpenseModule,
     DashboardModule,
+    BookModule,
     SchedulerModule,
   ],
 })

@@ -19,10 +19,37 @@
   z-index: 100;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .headerTitle {
   font-size: 1.125rem;
   font-weight: 700;
   color: #0f172a;
+}
+
+.bookSwitcher {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  max-width: 120px;
+  text-overflow: ellipsis;
+}
+
+.bookSwitcher:focus {
+  border-color: #3b82f6;
+  background: white;
+  color: #3b82f6;
 }
 
 .userBadge {
@@ -104,4 +131,72 @@
     padding: 1rem;
     padding-bottom: 85px;
   }
+}
+
+/* Book Switcher Overhaul */
+.bookSwitcherWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bookSwitcher {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.25rem 2rem 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  max-width: 140px;
+  text-overflow: ellipsis;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, var(--primary), var(--info));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bookSwitcher:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
+.switcherIcon {
+  position: absolute;
+  right: 0.75rem;
+  pointer-events: none;
+  color: var(--foreground-muted);
+}
+
+.navIconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  transition: all var(--transition-normal);
+}
+
+.bottomNavItem.active .navIconWrapper {
+  color: var(--primary);
+  background: var(--surface-hover);
+}
+
+.navBubble {
+  position: absolute;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
 }

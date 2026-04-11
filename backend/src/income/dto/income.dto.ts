@@ -14,6 +14,10 @@ export class CreateIncomeDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  bookId?: string;
 }
 
 export class UpdateIncomeDto {
@@ -33,5 +37,8 @@ export class UpdateIncomeDto {
   @IsOptional()
   @IsString()
   notes?: string;
-}
 
+  @IsOptional()
+  @IsString()
+  bookId?: string;
+}

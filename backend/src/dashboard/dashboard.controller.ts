@@ -14,9 +14,9 @@ export class DashboardController {
    * Get family dashboard summary
    */
   @Get('family')
-  async getFamilyDashboard(@CurrentUser() user) {
+  async getFamilyDashboard(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const dashboard = await this.dashboardService.getFamilyDashboard(user.familyId);
+      const dashboard = await this.dashboardService.getFamilyDashboard(user.familyId, bookId);
       return ResponseUtil.success('Family dashboard retrieved', dashboard);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
@@ -28,9 +28,9 @@ export class DashboardController {
    * Get user dashboard summary
    */
   @Get('my')
-  async getUserDashboard(@CurrentUser() user) {
+  async getUserDashboard(@CurrentUser() user, @Query('bookId') bookId?: string) {
     try {
-      const dashboard = await this.dashboardService.getUserDashboard(user.userId);
+      const dashboard = await this.dashboardService.getUserDashboard(user.userId, bookId);
       return ResponseUtil.success('User dashboard retrieved', dashboard);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
@@ -45,12 +45,14 @@ export class DashboardController {
   async getFamilyMonthlyTrends(
     @CurrentUser() user,
     @Query('months') months?: string,
+    @Query('bookId') bookId?: string,
   ) {
     try {
       const monthsNum = months ? parseInt(months, 10) : 6;
       const trends = await this.dashboardService.getFamilyMonthlyTrends(
         user.familyId,
         monthsNum,
+        bookId,
       );
       return ResponseUtil.success('Family trends retrieved', trends);
     } catch (error) {
@@ -63,12 +65,17 @@ export class DashboardController {
    * Get user monthly trends
    */
   @Get('my/trends')
-  async getUserMonthlyTrends(@CurrentUser() user, @Query('months') months?: string) {
+  async getUserMonthlyTrends(
+    @CurrentUser() user, 
+    @Query('months') months?: string,
+    @Query('bookId') bookId?: string,
+  ) {
     try {
       const monthsNum = months ? parseInt(months, 10) : 6;
       const trends = await this.dashboardService.getUserMonthlyTrends(
         user.userId,
         monthsNum,
+        bookId,
       );
       return ResponseUtil.success('User trends retrieved', trends);
     } catch (error) {
