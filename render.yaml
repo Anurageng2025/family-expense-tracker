@@ -10,20 +10,10 @@ services:
         value: postgresql://neondb_owner:npg_WbO3EG1JivzN@ep-rapid-haze-anuxe4bx-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: JWT_SECRET
         value: "super_secret_production_key_change_me"
-      - key: JWT_REFRESH_SECRET
-        value: "super_secret_production_refresh_key_change_me"
-      - key: EMAIL_HOST
-        value: "smtp.gmail.com"
-      - key: EMAIL_USER
-        value: "hitechghaziabadcollege@gmail.com"
-      - key: EMAIL_PASSWORD
-        value: "bcopypioarfpdvos"
+      - key: RESEND_API_KEY
+        value: "re_AtiBfHcG_DG3Uk35ci8xMELLgLENFYzGR"
       - key: EMAIL_FROM
-        value: "hitechghaziabadcollege@gmail.com"
-      - key: EMAIL_PORT
-        value: "465"
-      - key: EMAIL_SECURE
-        value: "true"
+        value: "onboarding@resend.dev"
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL

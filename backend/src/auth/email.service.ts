@@ -1,48 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
 
   constructor(private config: ConfigService) {
-    const host = this.config.get('EMAIL_HOST') || this.config.get('SMTP_HOST');
-    const user = this.config.get('EMAIL_USER') || this.config.get('SMTP_USER');
-    const pass = this.config.get('EMAIL_PASSWORD') || this.config.get('SMTP_PASS');
-    const port = parseInt(this.config.get('EMAIL_PORT') || this.config.get('SMTP_PORT'), 10) || 587;
-    const secure = (this.config.get('EMAIL_SECURE') || this.config.get('SMTP_SECURE')) === 'true';
+    const apiKey = this.config.get('RESEND_API_KEY');
 
-    if (host && user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure,
-        auth: {
-          user,
-          pass,
-        },
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,   // 10 seconds
-        socketTimeout: 30000,     // 30 seconds
-      });
-      console.log(`📧 Email service initialized on ${host}:${port}`);
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+      console.log('📧 Email service initialized via Resend API');
     } else {
-      console.warn('⚠️ Email credentials missing. Verify EMAIL_HOST/SMTP_HOST, EMAIL_USER/SMTP_USER, and EMAIL_PASSWORD/SMTP_PASS.');
+      console.warn('⚠️ RESEND_API_KEY missing. Emails will not be sent.');
     }
+  }
+
+  private getFromAddress(): string {
+    // If you haven't verified a domain on Resend, you MUST use this address
+    return this.config.get('EMAIL_FROM') || 'onboarding@resend.dev';
   }
 
   async sendOTP(email: string, otp: string): Promise<void> {
     console.log(`\n📧 [SYSTEM LOG] OTP for ${email}: ${otp}\n`);
 
-    if (!this.transporter) {
-      console.log('ℹ️ Skipping real email send: Email service not configured.');
+    if (!this.resend) {
+      console.log('ℹ️ Skipping real email send: Resend service not configured.');
       return;
     }
 
     try {
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: 'Your OTP for Family Expense Tracker Registration',
         html: `
@@ -73,9 +63,11 @@ export class EmailService {
     familyCode: string,
     familyName: string,
   ): Promise<void> {
+    if (!this.resend) return;
+
     try {
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: 'Your Family Code - Family Expense Tracker',
         html: `
@@ -114,6 +106,8 @@ export class EmailService {
     userName: string,
     familyName: string,
   ): Promise<void> {
+    if (!this.resend) return;
+
     try {
       const currentDate = new Date().toLocaleDateString('en-IN', {
         weekday: 'long',
@@ -122,8 +116,8 @@ export class EmailService {
         day: 'numeric',
       });
 
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: '⏰ Daily Reminder: Update Your Expenses - Family Expense Tracker',
         html: `
@@ -201,6 +195,8 @@ export class EmailService {
     totalExpense: number,
     balance: number,
   ): Promise<void> {
+    if (!this.resend) return;
+
     try {
       const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
@@ -212,8 +208,8 @@ export class EmailService {
 
       const balanceColor = balance >= 0 ? '#10b981' : '#ef4444';
 
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: `📊 Monthly Financial Summary: ${summaryMonth} - Family Expense Tracker`,
         html: `
@@ -279,9 +275,11 @@ export class EmailService {
     reportName: string,
     csvContent: string,
   ): Promise<void> {
+    if (!this.resend) return;
+
     try {
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: `📩 Your Financial Report: ${reportName}`,
         html: `
@@ -317,7 +315,6 @@ export class EmailService {
           {
             filename: `transactions_report_${new Date().toISOString().split('T')[0]}.csv`,
             content: csvContent,
-            contentType: 'text/csv'
           }
         ]
       });
@@ -335,6 +332,8 @@ export class EmailService {
     userName: string,
     members: any[],
   ): Promise<void> {
+    if (!this.resend) return;
+
     try {
       const formatDate = (date: Date) => {
         if (!date) return 'Never';
@@ -366,8 +365,8 @@ export class EmailService {
         </tr>
       `).join('');
 
-      await this.transporter.sendMail({
-        from: this.config.get('EMAIL_FROM'),
+      await this.resend.emails.send({
+        from: this.getFromAddress(),
         to: email,
         subject: `📍 Family Location Report - Expansis Track`,
         html: `
