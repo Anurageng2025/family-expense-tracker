@@ -39,6 +39,10 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import LocationTracker from '@/components/LocationTracker';
+import SyncStatus from '@/components/SyncStatus';
+import SyncManager from '@/components/SyncManager';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,6 +51,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable}`}>
+        <SyncManager />
+        <SyncStatus />
+        <LocationTracker />
         {children}
       </body>
     </html>

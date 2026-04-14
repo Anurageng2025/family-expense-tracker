@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from './email.service';
+import { CategoryType } from '@prisma/client';
 import { SendOtpDto, VerifyOtpDto, RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { CodeGeneratorUtil } from '../common/utils/code-generator.util';
@@ -175,6 +176,26 @@ export class AuthService {
         familyName,
         familyCode: newFamilyCode,
       },
+    });
+
+    // Seed default categories directly to avoid circular dependency
+    const defaults = [
+      { name: 'Salary', type: CategoryType.INCOME },
+      { name: 'Business', type: CategoryType.INCOME },
+      { name: 'Gift', type: CategoryType.INCOME },
+      { name: 'Investment', type: CategoryType.INCOME },
+      { name: 'Other', type: CategoryType.INCOME },
+      { name: 'Food', type: CategoryType.EXPENSE },
+      { name: 'Transport', type: CategoryType.EXPENSE },
+      { name: 'Shopping', type: CategoryType.EXPENSE },
+      { name: 'Bills', type: CategoryType.EXPENSE },
+      { name: 'Healthcare', type: CategoryType.EXPENSE },
+      { name: 'Entertainment', type: CategoryType.EXPENSE },
+      { name: 'Other', type: CategoryType.EXPENSE },
+    ];
+
+    await this.prisma.category.createMany({
+      data: defaults.map(d => ({ ...d, familyId: family.id })),
     });
 
     // Create user as ADMIN

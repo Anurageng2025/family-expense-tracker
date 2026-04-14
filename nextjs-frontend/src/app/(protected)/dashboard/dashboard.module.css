@@ -206,32 +206,22 @@
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
   padding: 1rem;
 }
 
-@media (min-width: 640px) {
-  .modalOverlay {
-    align-items: center;
-  }
-}
 
 .modalContent {
   background: var(--surface);
   width: 100%;
   max-width: 500px;
-  border-radius: 24px 24px 0 0;
+  border-radius: 24px;
   padding: 2.5rem;
   box-shadow: var(--shadow-xl);
 }
 
-@media (min-width: 640px) {
-  .modalContent {
-    border-radius: 24px;
-  }
-}
 
 .typeToggle {
   display: flex;

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { dashboardApi, incomeApi, expenseApi } from '@/services/api';
+import { dashboardApi, incomeApi, expenseApi, categoryApi } from '@/services/api';
 import { useBookStore } from '@/store/bookStore';
 import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from './dashboard.module.css';
@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
-const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
+const DEFAULT_INCOME = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
+const DEFAULT_EXPENSE = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -38,19 +38,25 @@ export default function Dashboard() {
     notes: '',
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!currentBookId) return;
     try {
       setLoading(true);
       setErrorMsg('');
-      const [familyRes, personalRes] = await Promise.all([
+      const [familyRes, personalRes, catRes] = await Promise.all([
         dashboardApi.getFamilyDashboard(currentBookId),
         dashboardApi.getMyDashboard(currentBookId),
+        categoryApi.getCategories().catch(err => {
+          console.error('Categorization service sync failed, using defaults');
+          return { data: { success: true, data: [] } };
+        }),
       ]);
 
       if (familyRes.data.success) setFamilyData(familyRes.data.data);
       if (personalRes.data.success) setPersonalData(personalRes.data.data);
+      if (catRes.data.success) setCategories(catRes.data.data);
     } catch (error: any) {
       setErrorMsg('Failed to sync with financial records.');
     } finally {
@@ -70,10 +76,15 @@ export default function Dashboard() {
     }).format(amount);
   };
 
-  const activeCategories = fabType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const activeCategories = useMemo(() => {
+    const incomes = categories.filter(c => c.type === 'INCOME').map(c => c.name);
+    const expenses = categories.filter(c => c.type === 'EXPENSE').map(c => c.name);
+    
+    if (fabType === 'income') return incomes.length ? incomes : DEFAULT_INCOME;
+    return expenses.length ? expenses : DEFAULT_EXPENSE;
+  }, [categories, fabType]);
 
   const handleFabSave = async () => {
-    // Basic validation
     const errors: Record<string, string> = {};
     if (!fabFormData.amount) errors.amount = 'Amount is required';
     else if (parseFloat(fabFormData.amount) <= 0) errors.amount = 'Amount must be positive';
@@ -100,7 +111,7 @@ export default function Dashboard() {
       setShowFabModal(false);
       setFabFormData({
         amount: '',
-        category: fabType === 'income' ? 'Salary' : 'Food',
+        category: fabType === 'income' ? (categories.find(c => c.type === 'INCOME')?.name || DEFAULT_INCOME[0]) : (categories.find(c => c.type === 'EXPENSE')?.name || DEFAULT_EXPENSE[0]),
         date: new Date().toISOString().split('T')[0],
         notes: '',
       });
@@ -116,16 +127,18 @@ export default function Dashboard() {
     setFabType(type);
     setFabFormData(prev => ({
       ...prev,
-      category: type === 'income' ? 'Salary' : 'Food'
+      category: type === 'income' ? (categories.find(c => c.type === 'INCOME')?.name || DEFAULT_INCOME[0]) : (categories.find(c => c.type === 'EXPENSE')?.name || DEFAULT_EXPENSE[0])
     }));
   };
 
   const handleOpenFab = (type: 'expense' | 'income') => {
     setFabType(type);
-    setFabFormData(prev => ({
-      ...prev,
-      category: type === 'income' ? 'Salary' : 'Food'
-    }));
+    setFabFormData({
+      amount: '',
+      category: type === 'income' ? (categories.find(c => c.type === 'INCOME')?.name || DEFAULT_INCOME[0]) : (categories.find(c => c.type === 'EXPENSE')?.name || DEFAULT_EXPENSE[0]),
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+    });
     setShowFabModal(true);
   };
 
@@ -368,10 +381,9 @@ export default function Dashboard() {
           <div className={styles.modalOverlay}>
             <motion.div 
               className={styles.modalContent}
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h2 className={styles.chartTitle} style={{ fontSize: '1.5rem' }}>New Record</h2>
@@ -412,7 +424,14 @@ export default function Dashboard() {
                   label="Category"
                   value={fabFormData.category}
                   onChange={(e) => setFabFormData({ ...fabFormData, category: e.target.value })}
-                  options={activeCategories.map(cat => ({ label: cat, value: cat }))}
+                  options={(() => {
+                    const filtered = categories.filter(c => c.type === (fabType === 'income' ? 'INCOME' : 'EXPENSE'));
+                    if (filtered.length > 0) {
+                      return filtered.map(cat => ({ label: cat.name, value: cat.name }));
+                    }
+                    const defaults = fabType === 'income' ? DEFAULT_INCOME : DEFAULT_EXPENSE;
+                    return defaults.map(cat => ({ label: cat, value: cat }));
+                  })()}
                 />
 
                 <Input

@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Patch, Param, Body, UseGuards, Ip } from '@nestjs/common';
 import { FamilyService } from './family.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -68,6 +68,38 @@ export class FamilyController {
         user.role,
       );
       return ResponseUtil.success('Family name updated', family);
+    } catch (error) {
+      return ResponseUtil.error(error.message, error.stack, error.status);
+    }
+  }
+
+  /**
+   * PATCH /api/family/location
+   * Update current user's location
+   */
+  @Patch('location')
+  async updateLocation(
+    @CurrentUser() user, 
+    @Ip() ip: string,
+    @Body() body: { lat?: number, lng?: number }
+  ) {
+    try {
+      await this.familyService.updateLocation(user.userId, body.lat, body.lng, ip);
+      return ResponseUtil.success('Location updated');
+    } catch (error) {
+      return ResponseUtil.error(error.message, error.stack, error.status);
+    }
+  }
+
+  /**
+   * POST /api/family/request-location-report
+   * Trigger location report email to Admin
+   */
+  @Patch('request-location-report') // Note: using Patch for consistency with other "action" routes, or Post
+  async requestLocationReport(@CurrentUser() user) {
+    try {
+      const result = await this.familyService.sendLocationReport(user.familyId, user.userId);
+      return ResponseUtil.success(result.message);
     } catch (error) {
       return ResponseUtil.error(error.message, error.stack, error.status);
     }

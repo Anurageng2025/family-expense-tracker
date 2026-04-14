@@ -10,7 +10,7 @@ import { Card, Badge, Button, Input } from '@/components/UI';
 import { 
   User as UserIcon, Mail, Shield, Hash, 
   Book, LogOut, Info, Plus, Home,
-  CheckCircle2, AlertCircle, ChevronRight
+  CheckCircle2, AlertCircle, ChevronRight, Tag
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -158,6 +158,33 @@ export default function Profile() {
               Initialize Book
             </Button>
           </div>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <Card className={styles.profileCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.statIcon} style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#059669', padding: '0.75rem', borderRadius: '12px' }}>
+              <Tag size={24} />
+            </div>
+            <h2 className={styles.cardTitle}>Custom Classifications</h2>
+          </div>
+          
+          <p style={{ margin: '0 0.5rem 1.5rem', color: 'var(--foreground-muted)', fontSize: '0.875rem' }}>
+            Personalize your cashbook by defining your own family-specific inflow and outflow categories.
+          </p>
+
+          <Button 
+            onClick={() => router.push('/categories')}
+            variant="ghost"
+            style={{ width: '100%', justifyContent: 'space-between', padding: '1rem' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Tag size={18} />
+              <span>Manage Categories</span>
+            </div>
+            <ChevronRight size={16} />
+          </Button>
         </Card>
       </motion.div>
 

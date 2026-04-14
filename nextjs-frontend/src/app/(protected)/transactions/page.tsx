@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { incomeApi, expenseApi } from '@/services/api';
+import { incomeApi, expenseApi, categoryApi } from '@/services/api';
 import { useBookStore } from '@/store/bookStore';
 import { Loader, ButtonLoader } from '@/components/Loader/Loader';
 import styles from '../records.module.css';
@@ -14,8 +14,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const INCOME_CATEGORIES = ['Salary', 'Business', 'Investment', 'Gift', 'Other'];
-const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Healthcare', 'Entertainment', 'Other'];
+// Static defaults as fallback during load
+const DEFAULT_INCOME = ['Salary', 'Business', 'Investment', 'Other'];
+const DEFAULT_EXPENSE = ['Food', 'Transport', 'Shopping', 'Bills', 'Other'];
 
 interface Transaction {
   id: string;
@@ -30,6 +31,7 @@ export default function Transactions() {
   const { currentBookId } = useBookStore();
   const [incomes, setIncomes] = useState<Transaction[]>([]);
   const [expenses, setExpenses] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   
@@ -62,9 +64,13 @@ export default function Transactions() {
     if (!currentBookId) return;
     try {
       setLoading(true);
-      const [incRes, expRes] = await Promise.all([
+      const [incRes, expRes, catRes] = await Promise.all([
         incomeApi.getMyIncomes(currentBookId),
-        expenseApi.getMyExpenses(currentBookId)
+        expenseApi.getMyExpenses(currentBookId),
+        categoryApi.getCategories().catch(err => {
+          console.error('Categorization service unavailable, using system defaults');
+          return { data: { success: true, data: [] } };
+        })
       ]);
 
       if (incRes.data.success) {
@@ -72,6 +78,9 @@ export default function Transactions() {
       }
       if (expRes.data.success) {
         setExpenses(expRes.data.data.map((e: any) => ({ ...e, type: 'expense' })));
+      }
+      if (catRes.data.success) {
+        setCategories(catRes.data.data);
       }
     } catch (err) {
       console.error('Failed to load transactions');
@@ -106,10 +115,15 @@ export default function Transactions() {
   }, [filteredTransactions]);
 
   const categoriesToDisplay = useMemo(() => {
-    if (typeFilter === 'income') return INCOME_CATEGORIES;
-    if (typeFilter === 'expense') return EXPENSE_CATEGORIES;
-    return Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]));
-  }, [typeFilter]);
+    const incomes = categories.filter(c => c.type === 'INCOME').map(c => c.name);
+    const expenses = categories.filter(c => c.type === 'EXPENSE').map(c => c.name);
+    
+    if (typeFilter === 'income') return incomes.length ? incomes : DEFAULT_INCOME;
+    if (typeFilter === 'expense') return expenses.length ? expenses : DEFAULT_EXPENSE;
+    
+    const combined = Array.from(new Set([...incomes, ...expenses]));
+    return combined.length ? combined : Array.from(new Set([...DEFAULT_INCOME, ...DEFAULT_EXPENSE]));
+  }, [typeFilter, categories]);
 
   const handleOpenModal = (item?: Transaction, type: 'income' | 'expense' = 'expense') => {
     if (item) {
@@ -124,9 +138,14 @@ export default function Transactions() {
     } else {
       setEditingItem(null);
       setModalType(type);
+      
+      const typeCats = categories.filter(c => c.type === (type === 'income' ? 'INCOME' : 'EXPENSE'));
+      const defaultOptions = type === 'income' ? DEFAULT_INCOME : DEFAULT_EXPENSE;
+      const defaultCat = typeCats.length > 0 ? typeCats[0].name : defaultOptions[0];
+
       setFormData({
         amount: '',
-        category: type === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0],
+        category: defaultCat,
         date: new Date().toISOString().split('T')[0],
         notes: '',
       });
@@ -415,7 +434,14 @@ export default function Transactions() {
                   label="Category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  options={(modalType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => ({ label: cat, value: cat }))}
+                  options={(() => {
+                    const filtered = categories.filter(c => c.type === (modalType === 'income' ? 'INCOME' : 'EXPENSE'));
+                    if (filtered.length > 0) {
+                      return filtered.map(cat => ({ label: cat.name, value: cat.name }));
+                    }
+                    const defaults = modalType === 'income' ? DEFAULT_INCOME : DEFAULT_EXPENSE;
+                    return defaults.map(cat => ({ label: cat, value: cat }));
+                  })()}
                 />
 
                 <Input

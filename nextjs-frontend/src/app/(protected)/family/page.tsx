@@ -8,9 +8,10 @@ import { Card, Badge, Button, Input } from '@/components/UI';
 import { 
   Users, Key, Copy, Bell, Trash2, 
   CheckCircle, Circle, X, Info,
-  Mail, Calendar, Shield, Share2
+  Mail, Calendar, Shield, Share2, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LocationStatus } from '@/components/LocationStatus';
 
 export default function Family() {
   const [family, setFamily] = useState<any>(null);
@@ -86,11 +87,37 @@ export default function Family() {
       setLoading(false);
     }
   };
-
   const toggleMemberSelection = (memberId: string) => {
     setSelectedMembers((prev) =>
       prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
     );
+  };
+
+  const handleRequestLocationReport = async () => {
+    try {
+      setLoading(true);
+      const response = await familyApi.requestLocationReport();
+      if (response.data.success) {
+        alert('📦 Location report has been dispatched to your email!');
+      }
+    } catch {
+      alert('Failed to request location report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatLastSeen = (dateString: string) => {
+    if (!dateString) return 'Location not sharing';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.round(diffMs / 60000);
+
+    if (diffMins < 1) return 'Active now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.round(diffMins / 60)}h ago`;
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
   const formatDate = (date: string) => {
@@ -140,6 +167,10 @@ export default function Family() {
       </header>
 
       <motion.div variants={itemVariants}>
+        <LocationStatus />
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
         <Card className={styles.codeCard}>
           <div className={styles.codeArea}>
             <div className={styles.label}>Family Workspace Code</div>
@@ -177,6 +208,23 @@ export default function Family() {
                   <div className={styles.memberMeta}>
                     <Mail size={12} style={{ display: 'inline', marginRight: '4px' }} />
                     {member.email} &bull; <Calendar size={12} style={{ display: 'inline', margin: '0 4px' }} /> {formatDate(member.createdAt)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--primary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={10} />
+                    <span>{formatLastSeen(member.lastLocationAt)}</span>
+                    {member.lastLocationAt && member.locationType && (
+                      <span style={{ 
+                        fontSize: '9px', 
+                        padding: '1px 4px', 
+                        background: member.locationType === 'IP' ? 'rgba(254, 235, 200, 0.5)' : 'rgba(198, 246, 213, 0.5)', 
+                        color: member.locationType === 'IP' ? '#7b341e' : '#22543d',
+                        borderRadius: '3px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        {member.locationType === 'IP' ? 'Estimate' : 'GPS'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -220,12 +268,21 @@ export default function Family() {
             <p style={{ marginBottom: '2rem', color: 'var(--foreground-muted)', fontSize: '0.875rem' }}>
               Broadcast synchronization requests or target specific members to ensure financial accurate reporting.
             </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Button onClick={handleSendToAll} isLoading={loading} style={{ flex: 1 }}>
                 Broadcast to All
               </Button>
               <Button variant="ghost" onClick={() => setShowReminderModal(true)} disabled={loading} style={{ flex: 1 }}>
                 Targeted Dispatch
+              </Button>
+              <Button 
+                onClick={handleRequestLocationReport} 
+                isLoading={loading} 
+                className={styles.locationBtn}
+                style={{ flex: 1, minWidth: '200px', background: 'var(--success)', borderColor: 'var(--success)' }}
+              >
+                <MapPin size={18} style={{ marginRight: '8px' }} />
+                Email Current Locations
               </Button>
             </div>
           </Card>

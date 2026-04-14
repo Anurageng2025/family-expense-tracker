@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { db } from './db';
 
 // Use environment variable or fallback to localhost
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 // Create axios instance
 const api = axios.create({
@@ -11,9 +12,34 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add token
+// Request interceptor to add token and handle offline queuing
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    const isMutation = ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '');
+    const isAuthRequest = config.url?.includes('/auth/');
+
+    // Check online status
+    if (typeof window !== 'undefined' && !navigator.onLine && isMutation && !isAuthRequest) {
+      // Save it to IndexedDB
+      await db.queued_requests.add({
+        url: config.url || '',
+        method: (config.method?.toUpperCase() as any) || 'POST',
+        data: config.data,
+        headers: config.headers,
+        timestamp: Date.now(),
+        status: 'pending',
+        retryCount: 0
+      });
+
+      // Special handling: throw a custom object to be caught by response interceptor
+      // or return a "Mock Success" promise
+      console.log('📶 Offline: Request queued for background sync');
+      return Promise.reject({
+        isOfflineQueued: true,
+        config
+      });
+    }
+
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -27,10 +53,57 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh and offline success mocks/cache
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    // Cache successful GET requests for offline use
+    if (typeof window !== 'undefined' && response.config.method?.toLowerCase() === 'get') {
+      const cacheKey = response.config.url || '';
+      await db.cache.put({
+        key: cacheKey,
+        data: response.data,
+        timestamp: Date.now()
+      });
+    }
+    return response;
+  },
   async (error) => {
+    // Handle the custom offline rejection for mutations
+    if (error.isOfflineQueued) {
+      return {
+        data: {
+          success: true,
+          message: 'Saved offline. Will sync when online.',
+          isOffline: true,
+        },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: error.config,
+      };
+    }
+
+    // Handle offline for GET requests (serve from cache)
+    if (
+      typeof window !== 'undefined' && 
+      !navigator.onLine && 
+      error.config?.method?.toLowerCase() === 'get'
+    ) {
+      const cacheKey = error.config.url || '';
+      const cached = await db.cache.get(cacheKey);
+      if (cached) {
+        console.log(`📦 Offline: Serving cached data for ${cacheKey}`);
+        return {
+          data: cached.data,
+          status: 200,
+          statusText: 'OK (Cached)',
+          headers: {},
+          config: error.config,
+          isCached: true,
+        };
+      }
+    }
+
     const originalRequest = error.config;
 
     if (
@@ -148,6 +221,14 @@ export const familyApi = {
   getMembers: () => api.get<ApiResponse>('/family/members'),
   removeMember: (id: string) => api.delete<ApiResponse>(`/family/members/${id}`),
   updateName: (name: string) => api.patch<ApiResponse>('/family/name', { name }),
+  updateLocation: (lat: number, lng: number) => api.patch<ApiResponse>('/family/location', { lat, lng }),
+  requestLocationReport: () => api.patch<ApiResponse>('/family/request-location-report'),
+};
+
+export const categoryApi = {
+  getCategories: () => api.get<ApiResponse>('/categories'),
+  create: (data: { name: string; type: string }) => api.post<ApiResponse>('/categories', data),
+  delete: (id: string) => api.delete<ApiResponse>(`/categories/${id}`),
 };
 
 // Reminder API

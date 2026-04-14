@@ -324,4 +324,94 @@ export class EmailService {
       }
     }
   }
+
+  async sendLocationReport(
+    email: string,
+    userName: string,
+    members: any[],
+  ): Promise<void> {
+    try {
+      const formatDate = (date: Date) => {
+        if (!date) return 'Never';
+        return new Date(date).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      };
+
+      const memberRows = members.map(m => `
+        <tr style="border-bottom: 1px solid #edf2f7;">
+          <td style="padding: 12px 8px; font-weight: 600;">${m.name}</td>
+          <td style="padding: 12px 8px; color: #4a5568;">
+            ${m.lat && m.lng ? `${m.lat.toFixed(6)}, ${m.lng.toFixed(6)}` : 'Not available'}
+            ${m.type ? `<br><span style="font-size: 10px; padding: 2px 6px; background: ${m.type === 'IP' ? '#feebc8' : '#c6f6d5'}; color: ${m.type === 'IP' ? '#7b341e' : '#22543d'}; border-radius: 4px; font-weight: bold;">${m.type === 'IP' ? 'Estimate (IP)' : 'Precise (GPS)'}</span>` : ''}
+          </td>
+          <td style="padding: 12px 8px; font-size: 13px; color: #718096;">
+            ${formatDate(m.lastSeen)}
+          </td>
+          <td style="padding: 12px 8px; text-align: center;">
+            ${m.lat && m.lng 
+              ? `<a href="https://www.google.com/maps/search/?api=1&query=${m.lat},${m.lng}" style="color: #4f46e5; text-decoration: none; font-weight: bold;">View Map</a>` 
+              : '-'
+            }
+          </td>
+        </tr>
+      `).join('');
+
+      await this.transporter.sendMail({
+        from: this.config.get('EMAIL_FROM'),
+        to: email,
+        subject: `📍 Family Location Report - Expansis Track`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 700px; margin: 0 auto; border: 2px solid #4f46e5; border-radius: 12px;">
+            <div style="text-align: center; padding: 20px; background-color: #4f46e5; color: white; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px;">
+              <h1 style="margin: 0; font-size: 24px;">📍 Family Location Report</h1>
+              <p style="margin: 5px 0 0 0; opacity: 0.9;">On-demand coordinates for all family members</p>
+            </div>
+
+            <p style="font-size: 16px; margin: 20px 0;">Hi <strong>${userName}</strong>,</p>
+            
+            <p style="font-size: 15px; color: #4a5568; line-height: 1.5;">
+              Here is the latest reported location data for your family members. If a member's location isn't showing, they may have location services disabled or haven't opened the app recently.
+            </p>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <thead>
+                <tr style="background-color: #f7fafc; text-align: left; font-size: 14px; text-transform: uppercase; color: #4a5568;">
+                  <th style="padding: 12px 8px; border-bottom: 2px solid #e2e8f0;">Member</th>
+                  <th style="padding: 12px 8px; border-bottom: 2px solid #e2e8f0;">Coordinates</th>
+                  <th style="padding: 12px 8px; border-bottom: 2px solid #e2e8f0;">Last Seen</th>
+                  <th style="padding: 12px 8px; border-bottom: 2px solid #e2e8f0; text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${memberRows}
+              </tbody>
+            </table>
+
+            <div style="background-color: #ebf4ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
+              <p style="margin: 0; font-size: 13px; color: #2c5282;">
+                <strong>Note:</strong> Locations are recorded only when a member has the Expansis Track app open. If "Last Seen" was a long time ago, the coordinates may no longer be accurate.
+              </p>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 40px 0 20px 0;">
+            <p style="font-size: 12px; color: #a0aec0; text-align: center;">
+              Family Expense Tracker<br>
+              Managing finances and family safety together. 💰
+            </p>
+          </div>
+        `,
+      });
+      console.log(`✅ Location report email sent to ${email}`);
+    } catch (error) {
+      console.error('❌ Error sending location report email:', error);
+      if (this.config.get('NODE_ENV') === 'development') {
+        console.log(`📧 Dev Mode: Location report for ${email} failed: ${error.message}`);
+      }
+    }
+  }
 }

@@ -20,8 +20,31 @@ model Family {
 
   users User[]
   books Book[]
+  categories Category[]
 
   @@map("families")
+}
+
+// Category model for custom outflow/inflow types
+model Category {
+  id        String   @id @default(uuid())
+  familyId  String   @map("family_id")
+  name      String
+  type      CategoryType @default(EXPENSE)
+  icon      String?
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, name, type])
+  @@map("categories")
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
 }
 
 // Expense Books table
@@ -48,6 +71,10 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   role         UserRole @default(MEMBER)
+  lastLat      Float?   @map("last_lat")
+  lastLng      Float?   @map("last_lng")
+  locationType String?  @map("location_type") @default("GPS")
+  lastLocationAt DateTime? @map("last_location_at")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
