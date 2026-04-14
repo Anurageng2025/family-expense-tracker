@@ -31,7 +31,7 @@ export class EmailService {
     }
 
     try {
-      await this.resend.emails.send({
+      const data = await this.resend.emails.send({
         from: this.getFromAddress(),
         to: email,
         subject: 'Your OTP for Family Expense Tracker Registration',
@@ -47,9 +47,9 @@ export class EmailService {
           </div>
         `,
       });
-      console.log(`✅ OTP email sent to ${email}`);
+      console.log(`✅ OTP email sent to ${email}. Response:`, data);
     } catch (error) {
-      console.error('❌ Error sending email:', error);
+      console.error('❌ Resend API Error:', error.response?.data || error.message || error);
       // In development, log the OTP to console
       if (this.config.get('NODE_ENV') === 'development') {
         console.log(`📧 Development Mode - OTP for ${email}: ${otp}`);
