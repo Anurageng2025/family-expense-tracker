@@ -7,23 +7,25 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private config: ConfigService) {
-    const host = this.config.get('EMAIL_HOST');
-    const user = this.config.get('EMAIL_USER');
-    const pass = this.config.get('EMAIL_PASSWORD');
+    const host = this.config.get('EMAIL_HOST') || this.config.get('SMTP_HOST');
+    const user = this.config.get('EMAIL_USER') || this.config.get('SMTP_USER');
+    const pass = this.config.get('EMAIL_PASSWORD') || this.config.get('SMTP_PASS');
+    const port = parseInt(this.config.get('EMAIL_PORT') || this.config.get('SMTP_PORT'), 10) || 587;
+    const secure = (this.config.get('EMAIL_SECURE') || this.config.get('SMTP_SECURE')) === 'true';
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
         host,
-        port: parseInt(this.config.get('EMAIL_PORT'), 10) || 587,
-        secure: this.config.get('EMAIL_SECURE') === 'true',
+        port,
+        secure,
         auth: {
           user,
           pass,
         },
       });
-      console.log('📧 Email service initialized');
+      console.log(`📧 Email service initialized on ${host}:${port}`);
     } else {
-      console.warn('⚠️ Email credentials missing in Render dashboard. Emails will only be logged to server console.');
+      console.warn('⚠️ Email credentials missing. Verify EMAIL_HOST/SMTP_HOST, EMAIL_USER/SMTP_USER, and EMAIL_PASSWORD/SMTP_PASS.');
     }
   }
 
