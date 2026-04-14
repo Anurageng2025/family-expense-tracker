@@ -22,6 +22,9 @@ export class EmailService {
           user,
           pass,
         },
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,   // 10 seconds
+        socketTimeout: 30000,     // 30 seconds
       });
       console.log(`📧 Email service initialized on ${host}:${port}`);
     } else {

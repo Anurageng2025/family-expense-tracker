@@ -21,9 +21,9 @@ services:
       - key: EMAIL_FROM
         value: "hitechghaziabadcollege@gmail.com"
       - key: EMAIL_PORT
-        value: "587"
+        value: "465"
       - key: EMAIL_SECURE
-        value: "false"
+        value: "true"
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
